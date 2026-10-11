@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>高保真原型 · 出境游规划助手</title>
+<style>
+  :root { --bg: #eceae6; --paper: #ffffff; --ink: #1f2328; --ink-2: #57606a; --ink-3: #8c959f; --line: #dcd9d3; --accent: #b5502a; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #16171a; --paper: #1e2024; --ink: #e6e6e6; --ink-2: #a8b0b8; --ink-3: #6e7681; --line: #30333a; --accent: #e08a63; }
+  }
+  :root[data-theme="dark"] { --bg: #16171a; --paper: #1e2024; --ink: #e6e6e6; --ink-2: #a8b0b8; --ink-3: #6e7681; --line: #30333a; --accent: #e08a63; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; font-size: 15px; line-height: 1.7; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 36px 16px 80px; }
+  .doc-type { font-size: 12px; letter-spacing: .12em; color: var(--accent); font-weight: 700; }
+  h1 { font-size: 28px; margin: 6px 0 8px; line-height: 1.3; }
+  .lead { color: var(--ink-2); font-size: 14px; margin: 0 0 6px; }
+  .lead a { color: var(--accent); }
+  .toc { position: sticky; top: 0; z-index: 20; background: var(--bg); display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 0; border-bottom: 1px solid var(--line); margin-top: 14px; }
+  .toc a { text-decoration: none; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: 13px; font-weight: 600; }
+  .toc a small { font-weight: 400; color: var(--ink-2); margin-left: 4px; }
+  .grp { margin-top: 34px; scroll-margin-top: 60px; }
+  .grp h2 { font-size: 21px; margin: 0 0 4px; }
+  .grp .gd { color: var(--ink-2); font-size: 14px; margin: 0 0 14px; max-width: 900px; }
+  .grp .row { display: flex; gap: 22px; flex-wrap: wrap; }
+  .cell { flex: 0 1 360px; width: 360px; max-width: 100%; }
+  .cap { text-align: center; font-size: 13px; color: var(--ink-2); margin-top: 8px; font-weight: 600; }
+  .note { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; margin-top: 18px; font-size: 13.5px; color: var(--ink-2); }
+  .note ul { margin: 4px 0; padding-left: 18px; }
+
+  /* 手机框 */
+  .phone { width: 100%; height: 760px; border-radius: 34px; border: 8px solid #111; overflow: hidden; position: relative; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+  .scr { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: none; }
+  .scr::-webkit-scrollbar { display: none; }
+  .status { height: 34px; display: flex; justify-content: space-between; align-items: center; padding: 0 22px; font-size: 12px; font-weight: 600; }
+  .ph * { margin: 0; }
+  .fix { position: sticky; left: 0; right: 0; bottom: 0; z-index: 5; }
+
+  /* ===== A3 清新杂志感 · 雅致与可读平衡 ===== */
+  .A3 { --bg: #f7f3ec; --card: #fffdf9; --ink: #2b2622; --ink2: #5a5048; --ink3: #736a60; --line: #e6dfd3; --line2: #d9cfc0; --acc: #b5502a; --olive: #66734a; --btn: #2b2622; --btn-t: #fbf7f0; --shadow: rgba(43,38,34,.06);
+        background: var(--bg); color: var(--ink); font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; font-size: 14px; line-height: 1.55; }
+  .A3 .serif { font-family: "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", serif; font-weight: 600; }
+  .A3 .num { font-family: Georgia, "Times New Roman", serif; }
+  .A3 .photo, .A3 .cover, .A3 .th, .A3 .thumb { background-size: cover; background-position: center; } /* 不加任何滤镜，保持照片自然色 */
+  .A3 .pad { padding: 0 20px; }
+  .A3 .bar { display: flex; justify-content: space-between; align-items: center; padding: 2px 20px 4px; font-size: 14px; }
+  .A3 .bar .hi { color: var(--ink3); }
+  .A3 .bar .me { color: var(--ink); font-weight: 500; }
+  .A3 .kicker { font-size: 11px; letter-spacing: .22em; color: var(--acc); font-weight: 600; }
+  .A3 .hero h1 { font-size: 29px; line-height: 1.3; margin: 6px 0 14px; letter-spacing: .02em; }
+  .A3 .hero .photo { height: 150px; border-radius: 3px; margin: 0 0 14px; background-position: center 40%; }
+  .A3 .pbtn { display: block; width: 100%; padding: 13px; border-radius: 999px; background: var(--btn); color: var(--btn-t); font-size: 15px; font-weight: 500; text-align: center; letter-spacing: .05em; }
+  .A3 .rule { display: flex; align-items: center; gap: 10px; margin: 26px 0 12px; font-size: 12.5px; color: var(--ink2); letter-spacing: .12em; }
+  .A3 .rule::after { content: ""; flex: 1; height: 1px; background: var(--line2); }
+  .A3 .rule a { order: 2; font-size: 12.5px; letter-spacing: 0; color: var(--acc); text-decoration: none; }
+  .A3 .trip { background: var(--card); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+  .A3 .trip .cover { height: 124px; position: relative; background-position: center 70%; }
+  .A3 .trip .cover span { position: absolute; left: 12px; top: 10px; background: var(--card); color: var(--ink); font-size: 12px; padding: 1px 9px; opacity: .94; border-radius: 999px; }
+  .A3 .trip .body { padding: 14px 16px 14px; }
+  .A3 .trip h2 { font-size: 21px; line-height: 1.3; }
+  .A3 .meta { font-size: 12.5px; color: var(--ink3); margin-top: 2px; }
+  .A3 .stops { display: flex; align-items: center; gap: 8px; margin: 12px 0 12px; font-size: 13.5px; color: var(--ink); }
+  .A3 .stops small { color: var(--ink3); font-size: 12px; }
+  .A3 .stops i { flex: 1; height: 1px; background: var(--line2); }
+  .A3 .acts { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid var(--line); font-size: 13.5px; }
+  .A3 .link { color: var(--acc); font-weight: 600; }
+  .A3 .soft { color: var(--ink2); }
+  .A3 .tiny { font-size: 12px; color: var(--ink3); }
+  .A3 .done { display: flex; gap: 12px; align-items: center; padding: 4px 0 12px; border-bottom: 1px solid var(--line); }
+  .A3 .done .th { width: 52px; height: 52px; border-radius: 3px; flex-shrink: 0; }
+  .A3 .done b { font-size: 15px; font-weight: 600; }
+  .A3 .tagok { font-size: 11px; color: var(--olive); border: 1px solid var(--olive); padding: 0 5px; border-radius: 3px; margin-left: 6px; vertical-align: 1px; }
+  .A3 .more { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .A3 .more div { border: 1px solid var(--line2); border-radius: 4px; padding: 11px 12px; font-size: 14px; font-weight: 500; }
+  .A3 .more small { display: block; color: var(--ink2); font-size: 12.5px; font-weight: 400; margin-top: 2px; }
+  /* A3 结果页 */
+  .A3 .nav { display: flex; align-items: center; padding: 0 14px 4px; }
+  .A3 .nav .ib { width: 30px; font-size: 20px; color: var(--ink2); }
+  .A3 .nav .t { flex: 1; text-align: center; font-size: 16.5px; }
+  .A3 .nav .ex { font-size: 13px; color: var(--ink2); }
+  .A3 .ov { text-align: center; font-size: 12px; color: var(--ink3); padding: 0 16px 6px; white-space: nowrap; overflow: hidden; }
+  .A3 .ov b { color: var(--ink2); font-weight: 500; }
+  .A3 .days { display: flex; align-items: center; border-bottom: 1px solid var(--line2); padding-left: 12px; }
+  .A3 .days .sc { display: flex; flex: 1; overflow: hidden; -webkit-mask-image: linear-gradient(to right, #000 85%, transparent); mask-image: linear-gradient(to right, #000 85%, transparent); }
+  .A3 .days .sc div { flex-shrink: 0; padding: 6px 10px 7px; text-align: center; color: var(--ink3); line-height: 1.15; }
+  .A3 .days .sc div b { display: block; font-size: 18px; font-weight: 400; color: var(--ink2); }
+  .A3 .days .sc div span { font-size: 11px; white-space: nowrap; }
+  .A3 .days .sc .on { color: var(--acc); box-shadow: inset 0 -2px 0 var(--acc); }
+  .A3 .days .sc .on b { color: var(--acc); }
+  .A3 .days .pool { margin: 0 14px 0 4px; padding: 3px 10px; border: 1px solid var(--acc); color: var(--acc); border-radius: 999px; font-size: 12.5px; font-weight: 500; white-space: nowrap; }
+  .A3 .dh { padding: 12px 20px 0; }
+  .A3 .dh .kick { font-size: 11.5px; letter-spacing: .14em; color: var(--acc); }
+  .A3 .dh .row { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
+  .A3 .dh h2 { font-size: 24px; line-height: 1.3; }
+  .A3 .dh .ed { font-size: 12.5px; color: var(--ink2); border: 1px solid var(--line2); border-radius: 999px; padding: 3px 10px; }
+  .A3 .facts { margin-top: 4px; font-size: 13px; color: var(--ink2); }
+  .A3 .whyrow { display: flex; gap: 6px; align-items: baseline; margin-top: 2px; font-size: 13px; color: var(--ink2); }
+  .A3 .whyrow div { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .A3 .whyrow span { color: var(--acc); white-space: nowrap; }
+  .A3 .map3 { margin: 10px 20px 0; height: 142px; border-radius: 3px; border: 1px solid var(--line); background-size: cover; background-position: center; }
+  .A3 .slot3 { display: flex; align-items: center; gap: 10px; margin: 16px 0 6px; font-size: 12px; letter-spacing: .2em; color: var(--ink2); }
+  .A3 .slot3::after { content: ""; flex: 1; height: 1px; background: var(--line2); }
+  .A3 .slot3 small { letter-spacing: 0; color: var(--ink3); font-size: 12px; }
+  .A3 .pl3 { display: grid; grid-template-columns: 22px 1fr 60px; gap: 10px; align-items: start; padding: 6px 0; }
+  .A3 .pl3 > div { min-width: 0; }
+  .A3 .pl3 .n { font-size: 22px; color: var(--acc); line-height: 1.05; }
+  .A3 .pl3 h4 { font-size: 16.5px; font-weight: 600; line-height: 1.35; }
+  .A3 .pl3 p { font-size: 13px; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .A3 .pl3 .m { margin-top: 5px; font-size: 12.5px; color: var(--ink2); display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+  .A3 .pl3 .bk { color: var(--ink); font-weight: 600; border: 1px solid var(--ink); border-radius: 3px; padding: 0 6px; }
+  .A3 .pl3 .thumb { width: 60px; height: 60px; border-radius: 3px; }
+  .A3 .leg3 { margin: 0 0 0 9px; padding: 4px 0 4px 21px; border-left: 1.5px dashed var(--acc); font-size: 12.5px; color: var(--ink2); }
+  .A3 .add3 { margin-top: 14px; padding: 10px; text-align: center; border: 1px dashed var(--line2); border-radius: 4px; font-size: 13px; color: var(--ink2); }
+  .A3 .blk3 { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line2); }
+  .A3 .blk3 .bh { display: flex; justify-content: space-between; align-items: baseline; }
+  .A3 .blk3 .bh b { font-size: 15px; }
+  .A3 .blk3 .bh a { font-size: 13px; color: var(--acc); }
+  .A3 .blk3 .bd { display: flex; gap: 12px; margin-top: 8px; font-size: 13px; color: var(--ink2); }
+  .A3 .blk3 .bd .thumb { width: 54px; height: 54px; border-radius: 3px; flex-shrink: 0; }
+  .A3 .ai3 { padding: 18px 14px 16px; background: linear-gradient(transparent, var(--bg) 35%); display: flex; gap: 8px; align-items: center; }
+  .A3 .ai3 .x { font-size: 12.5px; color: var(--ink2); border: 1px solid var(--line2); background: var(--card); border-radius: 999px; padding: 7px 10px; white-space: nowrap; }
+  .A3 .ai3 .in { flex: 1; background: var(--card); border: 1px solid var(--line2); border-radius: 999px; padding: 8px 14px; font-size: 13.5px; color: var(--ink3); box-shadow: 0 2px 10px var(--shadow); }
+  .A3 .ai3 .send { width: 36px; height: 36px; border-radius: 50%; background: var(--acc); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+
+
+  /* ===== 状态色：固定，不随主题变化；都配图标 + 文字 ===== */
+  .A3 { --st-warn: #8a5a00; --st-warn-bg: #fbf3df; --st-warn-line: #d9b56a; --st-err: #9b1c1c; --st-err-bg: #fdeceb; --st-err-line: #f1c4c0; --st-err-t: #7a1a1a; --st-ok: #2f6b45;
+        --tint: color-mix(in srgb, var(--acc) 9%, var(--card)); --mask: rgba(43,38,34,.38); }
+  .A3 .vf { color: var(--st-warn); background: var(--st-warn-bg); border: 1px dashed var(--st-warn-line); border-radius: 3px; padding: 0 6px; font-weight: 600; font-size: 12px; }
+  .A3 .cf { margin: 2px 0 6px 32px; padding: 6px 10px; background: var(--st-err-bg); border: 1px solid var(--st-err-line); border-radius: 3px; font-size: 12.5px; color: var(--st-err-t); line-height: 1.5; }
+  .A3 .cf b { display: inline-block; background: var(--st-err); color: #fff; font-weight: 600; padding: 0 6px; border-radius: 2px; margin-right: 6px; }
+  .A3 .warnbar { margin: 10px 20px 0; padding: 8px 10px; background: var(--st-warn-bg); border: 1px solid var(--st-warn-line); border-radius: 3px; font-size: 13px; color: var(--st-warn); display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+  .A3 .warnbar .go { color: var(--ink); font-weight: 600; white-space: nowrap; border: 1px solid var(--line2); background: var(--card); border-radius: 999px; padding: 2px 10px; font-size: 12.5px; }
+  .A3 .tagok { color: var(--st-ok); border-color: var(--st-ok); }
+  .A3 .newtag { font-size: 11px; color: var(--acc); border: 1px solid var(--acc); border-radius: 3px; padding: 0 5px; margin-left: 6px; font-weight: 500; vertical-align: 2px; }
+  .A3 .sample { font-size: 11px; color: var(--ink2); border: 1px solid var(--line2); border-radius: 3px; padding: 0 5px; margin-left: 6px; vertical-align: 3px; font-weight: 400; }
+
+  .A3 .leg3 em { font-style: normal; color: var(--ink3); }
+  .A3 .newtag, .A3 .sample, .A3 .trc .st, .A3 .edit .acts2 span { white-space: nowrap; }
+  .A3 .trc .h { align-items: flex-start; gap: 8px; }
+  .A3 .trc .st { margin-top: 2px; }
+  /* ===== 插画 ===== */
+  .A3 .ill { margin: 0 0 14px; border-radius: 3px; overflow: hidden; }
+  .A3 .ill svg { display: block; width: 100%; height: auto; }
+
+  /* ===== 通用按钮与条 ===== */
+  .A3 .sbtn { display: block; text-align: center; padding: 12px; border-radius: 999px; border: 1px solid var(--line2); background: var(--card); color: var(--ink); font-size: 15px; }
+  .A3 .foot2 { display: flex; gap: 10px; padding: 12px 20px 18px; background: linear-gradient(transparent, var(--bg) 30%); }
+  .A3 .foot2 > * { flex: 1; }
+  .A3 .top2 { display: flex; align-items: center; padding: 0 14px 6px; }
+  .A3 .top2 .ib { width: 30px; font-size: 20px; color: var(--ink2); }
+  .A3 .top2 .t { flex: 1; text-align: center; font-size: 16.5px; }
+  .A3 .top2 .r { width: 30px; text-align: right; font-size: 13px; color: var(--ink2); }
+  .A3 .prog { display: flex; gap: 4px; padding: 0 20px 4px; }
+  .A3 .prog i { flex: 1; height: 2px; background: var(--line2); }
+  .A3 .prog i.on { background: var(--acc); }
+
+  /* ===== 表单（P2） ===== */
+  .A3 .fl { display: flex; justify-content: space-between; align-items: baseline; margin: 18px 0 6px; font-size: 14px; font-weight: 600; }
+  .A3 .fl small { font-size: 12.5px; font-weight: 400; color: var(--ink3); }
+  .A3 .fl em { font-style: normal; color: var(--acc); margin-left: 2px; margin-right: auto; }
+  .A3 .inp { background: var(--card); border: 1px solid var(--line2); border-radius: 4px; padding: 9px 12px; font-size: 14px; color: var(--ink); min-height: 44px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .A3 .inp.focus { border-color: var(--acc); box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc) 14%, transparent); }
+  .A3 .inp .ph2 { color: var(--ink3); }
+  .A3 .inp .caret { width: 1.5px; height: 18px; background: var(--acc); }
+  .A3 .tok { background: var(--tint); color: var(--ink); border-radius: 3px; padding: 2px 8px; font-size: 13.5px; display: inline-flex; gap: 6px; align-items: center; }
+  .A3 .tok i { font-style: normal; color: var(--ink3); font-size: 12px; }
+  .A3 .tok .dr { color: var(--ink3); letter-spacing: -1px; }
+  .A3 .hint2 { font-size: 12.5px; color: var(--ink3); margin-top: 6px; }
+  .A3 .sug { background: var(--card); border: 1px solid var(--line2); border-radius: 4px; margin-top: 4px; box-shadow: 0 6px 18px var(--shadow); overflow: hidden; }
+  .A3 .sug div { padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; border-top: 1px solid var(--line); }
+  .A3 .sug div:first-child { border-top: none; background: var(--tint); }
+  .A3 .sug b { font-weight: 600; } .A3 .sug b u { text-decoration: none; color: var(--acc); }
+  .A3 .sug small { font-size: 12px; color: var(--ink3); }
+  .A3 .stepper { display: flex; align-items: center; gap: 16px; }
+  .A3 .stepper span { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line2); background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--ink2); }
+  .A3 .stepper b { font-size: 24px; font-weight: 400; min-width: 28px; text-align: center; }
+  .A3 .datef { justify-content: space-between; }
+  .A3 .datef a { color: var(--ink3); font-size: 13px; }
+  .A3 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .A3 .chip { padding: 5px 12px; border: 1px solid var(--line2); border-radius: 999px; font-size: 13.5px; color: var(--ink2); background: var(--card); }
+  .A3 .chip.on { border-color: var(--acc); color: var(--acc); background: var(--tint); font-weight: 500; }
+  .A3 .chip.add { border-style: dashed; color: var(--ink3); }
+  .A3 .seg3 { display: flex; border: 1px solid var(--line2); border-radius: 999px; background: var(--card); padding: 3px; }
+  .A3 .seg3 span { flex: 1; text-align: center; padding: 6px 0; border-radius: 999px; font-size: 14px; color: var(--ink2); }
+  .A3 .seg3 span.on { background: var(--tint); color: var(--acc); font-weight: 600; box-shadow: inset 0 0 0 1px var(--acc); }
+  .A3 .ta { min-height: 66px; align-items: flex-start; color: var(--ink3); }
+
+  /* ===== 生成中（P3） ===== */
+  .A3 .sumc { background: var(--card); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; font-size: 13.5px; }
+  .A3 .sumc div { display: flex; gap: 12px; padding: 3px 0; }
+  .A3 .sumc span:first-child { color: var(--ink3); width: 42px; flex-shrink: 0; }
+  .A3 .stages { margin: 20px 0 0; padding: 0; list-style: none; }
+  .A3 .stages li { display: flex; gap: 12px; padding-bottom: 16px; position: relative; }
+  .A3 .stages li::before { content: ""; position: absolute; left: 9px; top: 22px; bottom: 2px; width: 1px; background: var(--line2); }
+  .A3 .stages li:last-child::before { display: none; }
+  .A3 .stages .d { width: 19px; height: 19px; border-radius: 50%; border: 1.5px solid var(--line2); background: var(--bg); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; margin-top: 1px; }
+  .A3 .stages .done .d { background: var(--acc); border-color: var(--acc); }
+  .A3 .stages .now .d { border-color: var(--acc); box-shadow: 0 0 0 4px color-mix(in srgb, var(--acc) 15%, transparent); }
+  .A3 .stages .now .d::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--acc); }
+  .A3 .stages b { display: block; font-size: 14.5px; font-weight: 600; }
+  .A3 .stages .todo b { color: var(--ink3); font-weight: 400; }
+  .A3 .stages small { display: block; font-size: 12.5px; color: var(--ink2); margin-top: 1px; }
+  .A3 .bgnote { margin-top: 6px; padding: 10px 12px; border-top: 1px solid var(--line2); font-size: 13px; color: var(--ink2); }
+  .A3 .alertc { background: var(--card); border: 1px solid var(--line2); border-radius: 4px; padding: 14px; margin-top: 18px; }
+  .A3 .alertc h4 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .A3 .alertc p { font-size: 13.5px; color: var(--ink2); }
+  .A3 .alertc .opt { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .A3 .alertc .opt span { border: 1px solid var(--line2); border-radius: 4px; padding: 9px 12px; font-size: 14px; display: flex; justify-content: space-between; }
+  .A3 .alertc .opt span.rec { border-color: var(--acc); background: var(--tint); }
+  .A3 .alertc .opt small { color: var(--ink3); font-size: 12px; }
+  .A3 .spin { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line2); border-top-color: var(--acc); flex-shrink: 0; }
+
+  /* ===== 结果页附加（P4） ===== */
+  .A3 .trc { background: var(--card); border: 1px solid var(--line2); border-radius: 4px; padding: 10px 12px; margin: 4px 0 6px; }
+  .A3 .trc .h { display: flex; justify-content: space-between; align-items: center; font-size: 14.5px; font-weight: 600; }
+  .A3 .trc .st { font-size: 11.5px; font-weight: 500; color: var(--ink2); border: 1px solid var(--line2); border-radius: 3px; padding: 0 6px; }
+  .A3 .trc .tm { font-size: 12.5px; color: var(--ink2); margin-top: 2px; }
+  .A3 .trc .a { font-size: 13px; color: var(--acc); font-weight: 600; margin-top: 6px; display: inline-block; }
+  .A3 .edit .pl3 { grid-template-columns: 18px 22px 1fr auto; background: var(--card); border: 1px solid var(--line); border-radius: 4px; padding: 8px 8px; margin: 4px 0; }
+  .A3 .edit .hdl { color: var(--ink3); font-size: 16px; line-height: 1.2; }
+  .A3 .edit .acts2 { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; font-size: 13px; color: var(--ink2); }
+  .A3 .edit .acts2 span { border: 1px solid var(--line2); border-radius: 999px; padding: 1px 8px; background: var(--bg); }
+  .A3 .edit .drag { box-shadow: 0 10px 24px rgba(43,38,34,.18); transform: rotate(-1deg); border-color: var(--acc); }
+  .A3 .editbar { display: flex; gap: 10px; align-items: center; padding: 10px 16px 18px; background: var(--card); border-top: 1px solid var(--line2); font-size: 12.5px; color: var(--ink2); }
+  .A3 .editbar .pbtn { width: auto; padding: 8px 20px; font-size: 14px; }
+  .A3 .poolintro { font-size: 13px; color: var(--ink2); padding: 12px 20px 0; }
+  .A3 .poolrow { display: flex; align-items: center; gap: 8px; margin: 2px 0 12px 32px; font-size: 13px; color: var(--ink2); }
+  .A3 .sel { flex: 1; border: 1px solid var(--line2); background: var(--card); border-radius: 4px; padding: 5px 10px; font-size: 13px; color: var(--ink); display: flex; justify-content: space-between; }
+  .A3 .sel em { font-style: normal; color: var(--acc); font-weight: 600; margin-right: 4px; }
+  .A3 .minibtn { border: 1px solid var(--ink); border-radius: 999px; padding: 4px 12px; font-size: 13px; color: var(--ink); font-weight: 500; }
+  .A3 .sugtag { font-size: 12px; color: var(--ink2); }
+  .A3 .sugtag b { color: var(--acc); font-weight: 600; }
+
+  /* ===== 弹层 ===== */
+  .A3x { position: absolute; inset: 0; pointer-events: none; }
+  .A3 .mask { position: absolute; inset: 0; background: var(--mask); z-index: 8; }
+  .A3 .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 9; background: var(--bg); border-radius: 16px 16px 0 0; max-height: 88%; overflow-y: auto; scrollbar-width: none; box-shadow: 0 -8px 30px rgba(43,38,34,.15); }
+  .A3 .sheet::-webkit-scrollbar { display: none; }
+  .A3 .sheet .grab { width: 38px; height: 4px; border-radius: 2px; background: var(--line2); margin: 8px auto 4px; }
+  .A3 .sheet .sh { display: flex; justify-content: space-between; align-items: center; padding: 6px 20px 10px; }
+  .A3 .sheet .sh b { font-size: 18px; }
+  .A3 .sheet .sh span { color: var(--ink3); font-size: 18px; }
+  .A3 .sheet .sb { padding: 0 20px 20px; }
+  .A3 .diffr { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .A3 .diffr .k { font-size: 11.5px; border-radius: 3px; padding: 1px 6px; white-space: nowrap; margin-top: 1px; }
+  .A3 .diffr .k.out { color: var(--ink2); border: 1px solid var(--line2); }
+  .A3 .diffr .k.in { color: var(--acc); border: 1px solid var(--acc); }
+  .A3 .diffr s { color: var(--ink3); }
+  .A3 .diffr small { display: block; font-size: 12.5px; color: var(--ink2); }
+  .A3 .toast2 { position: absolute; left: 16px; right: 16px; bottom: 84px; z-index: 7; background: var(--ink); color: var(--card); border-radius: 999px; padding: 10px 16px; font-size: 13.5px; display: flex; justify-content: space-between; box-shadow: 0 8px 20px rgba(0,0,0,.18); }
+  .A3 .toast2 u { text-decoration: none; color: color-mix(in srgb, var(--acc) 45%, #fff); font-weight: 600; }
+
+  /* 地点详情 */
+  .A3 .dhero { height: 190px; border-radius: 4px; background-size: cover; background-position: center; margin-bottom: 12px; position: relative; }
+  .A3 .dhero small { position: absolute; right: 6px; bottom: 4px; font-size: 10px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+  .A3 .kv { display: grid; grid-template-columns: 72px 1fr; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .A3 .kv span:first-child { color: var(--ink3); }
+  .A3 .fold { padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; font-weight: 600; display: flex; justify-content: space-between; }
+  .A3 .fold span { color: var(--ink3); font-weight: 400; }
+  .A3 .lks { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; }
+  .A3 .lks span { font-size: 13px; border: 1px solid var(--line2); border-radius: 999px; padding: 3px 11px; background: var(--card); }
+  .A3 .lks span.p { border-color: var(--acc); color: var(--acc); }
+
+  /* 添加 / 导入 */
+  .A3 .res { background: var(--card); border: 1px solid var(--line); border-radius: 4px; margin-top: 8px; }
+  .A3 .res .r { padding: 10px 12px; border-top: 1px solid var(--line); font-size: 14px; }
+  .A3 .res .r:first-child { border-top: none; }
+  .A3 .res .r .t1 { display: flex; gap: 10px; align-items: center; }
+  .A3 .cb { width: 18px; height: 18px; border-radius: 3px; border: 1.5px solid var(--line2); background: var(--card); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; }
+  .A3 .cb.on { background: var(--acc); border-color: var(--acc); }
+  .A3 .cb.dis { background: var(--line); border-color: var(--line); }
+  .A3 .res .r .q { font-size: 12.5px; color: var(--ink3); margin: 3px 0 0 28px; }
+  .A3 .res .r .st2 { font-size: 12.5px; color: var(--ink2); margin: 3px 0 0 28px; }
+  .A3 .res .r .st2 b { color: var(--acc); font-weight: 600; }
+  .A3 .res .r.dis b { color: var(--ink3); font-weight: 400; }
+  .A3 .res .r .sel { margin: 6px 0 0 28px; }
+  .A3 .ktag { font-size: 11px; color: var(--ink2); border: 1px solid var(--line2); border-radius: 3px; padding: 0 5px; }
+  .A3 .shots { display: flex; gap: 8px; margin-top: 8px; }
+  .A3 .shots div { width: 54px; height: 72px; border-radius: 4px; background: var(--card); border: 1px solid var(--line2); position: relative; overflow: hidden; }
+  .A3 .shots div i { position: absolute; inset: 6px 6px auto 6px; height: 4px; background: var(--line2); box-shadow: 0 9px 0 var(--line2), 0 18px 0 var(--line), 0 27px 0 var(--line2), 0 36px 0 var(--line); }
+  .A3 .shots div b { position: absolute; right: 2px; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: 400; }
+  .A3 .shots .up { border-style: dashed; display: flex; align-items: center; justify-content: center; color: var(--ink3); font-size: 20px; }
+  .A3 .failc { margin-top: 12px; border: 1px solid var(--line2); background: var(--card); border-radius: 4px; padding: 12px; }
+  .A3 .failc h4 { font-size: 15px; font-weight: 600; }
+  .A3 .failc p { font-size: 13px; color: var(--ink2); margin-top: 2px; }
+  .A3 .failc .o { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .A3 .failc .o span { font-size: 13px; border: 1px solid var(--line2); border-radius: 999px; padding: 4px 12px; }
+
+  /* 导出 */
+  .A3 .exo { display: flex; gap: 12px; align-items: center; background: var(--card); border: 1px solid var(--line2); border-radius: 4px; padding: 12px; margin-bottom: 8px; }
+  .A3 .exo.on { border-color: var(--acc); background: var(--tint); }
+  .A3 .exo .rd { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--line2); flex-shrink: 0; }
+  .A3 .exo.on .rd { border: 5px solid var(--acc); }
+  .A3 .exo b { font-size: 15px; font-weight: 600; display: block; }
+  .A3 .exo small { font-size: 12.5px; color: var(--ink2); }
+  .wx-over { position: absolute; inset: 0; background: #111; z-index: 10; display: flex; flex-direction: column; }
+  .wx-over .tp { color: #fff; font-size: 13px; display: flex; justify-content: space-between; padding: 40px 16px 10px; }
+  .wx-over .tp b { font-weight: 500; }
+  .wx-over .img { flex: 1; overflow-y: auto; scrollbar-width: none; padding: 0 22px 20px; }
+  .wx-over .img::-webkit-scrollbar { display: none; }
+  .wx-over .bt { color: rgba(255,255,255,.75); font-size: 12.5px; text-align: center; padding: 10px 0 22px; }
+  /* 长图 */
+  .A3.li { border-radius: 2px; overflow: hidden; }
+  .A3.li .lc { height: 150px; background-size: cover; background-position: center 65%; }
+  .A3.li .lb { padding: 14px 16px 6px; }
+  .A3.li .lb h2 { font-size: 22px; }
+  .A3.li .lday { padding: 10px 16px; border-top: 1px solid var(--line2); display: grid; grid-template-columns: 34px 1fr; gap: 6px; }
+  .A3.li .lday .n { font-size: 20px; color: var(--acc); line-height: 1.1; }
+  .A3.li .lday b { font-size: 14px; font-weight: 600; display: block; }
+  .A3.li .lday p { font-size: 12.5px; color: var(--ink2); }
+  .A3.li .lmap { height: 110px; margin: 0 16px 8px; border-radius: 3px; background-size: cover; background-position: center; border: 1px solid var(--line); }
+  .A3.li .lf { padding: 10px 16px 14px; font-size: 11px; color: var(--ink3); display: flex; justify-content: space-between; border-top: 1px solid var(--line2); }
+
+  footer { margin-top: 36px; color: var(--ink-3); font-size: 12px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="doc-type">HI-FI PROTOTYPE · A3</div>
+  <h1>高保真原型</h1>
+  <p class="lead">v0.1 · 2026-10-09 · 视觉：A3 米白陶土（已定）· 流程依据：<a href="低保真原型.html">低保真原型</a>、<a href="首版范围与页面职责.html">首版范围与页面职责</a> · 规范：<a href="设计规范.html">设计规范</a></p>
+  <p class="lead">7 个页面共 19 个画面，含关键状态。手机框内可以上下滚动。照片为真实照片（不加滤镜），地图为真实底图 + 实测路线的静态截图，正式版为可交互地图。</p>
+  <nav class="toc" id="toc"></nav>
+  <div id="screens"></div>
+  <div class="note"><b>素材说明</b><ul>
+    <li>照片：Wikimedia Commons，可商用许可，作者与许可见 <code>assets/photos/credits.json</code>，正式使用需署名。</li>
+    <li>地图：自托管 OSM 底图（Protomaps）+ OSRM 步行路线，按 A3 配色渲染；字体文件上线前改为自托管。</li>
+    <li>天气：Open-Meteo 历史天气，2021–2025 年同期汇总。开放时间、预约要求等为示例，正式版来自地点库并注明来源与核对日期。</li>
+  </ul></div>
+  <footer>高保真原型 · v0.1 · 出境游规划助手</footer>
+</div>
+<script>
+/* ================= 公共 ================= */
+const ST = '<div class="status"><span>9:41</span><span>●●● ▮</span></div>';
+const img = n => `background-image:url('assets/photos/${n}.jpg')`;
+const mix = (a, p, b) => `color-mix(in srgb, var(${a}) ${p}%, var(${b}))`;
+const phone = (inner, over = '') => `<div class="phone"><div class="scr ph A3">${inner}</div>${over ? `<div class="A3 ph" style="position:absolute;inset:0;background:transparent">${over}</div>` : ''}</div>`;
+const sheet = (title, body, h) => `<div class="mask"></div><div class="sheet"${h ? ` style="height:${h}"` : ''}><div class="grab"></div><div class="sh"><b class="serif">${title}</b><span>✕</span></div><div class="sb">${body}</div></div>`;
+
+/* 插画：通用旅行意象，颜色全部来自配色变量 */
+function illus() {
+  const sky = mix('--acc', 8, '--card'), sun = mix('--acc', 28, '--card'), far = mix('--ink', 9, '--card'),
+        near = mix('--olive', 20, '--card'), sea = mix('--acc', 12, '--card'), sail = mix('--acc', 45, '--card');
+  const st = 'fill:var(--card);stroke:var(--ink2);stroke-width:1.3;stroke-linejoin:round';
+  return `<svg viewBox="0 0 340 150" role="img" aria-label="旅行插画">
+    <rect width="340" height="150" style="fill:${sky}"/>
+    <circle cx="268" cy="44" r="19" style="fill:${sun}"/>
+    <path d="M30 40 h34 M44 50 h26 M206 30 h26" style="stroke:var(--card);stroke-width:6;stroke-linecap:round"/>
+    <path d="M0 108 L34 82 L52 94 L88 58 L122 92 L146 80 L176 104 L340 104 L340 150 L0 150Z" style="fill:${far}"/>
+    <path d="M80 66 L88 58 L96 66 L92 64 L88 68 L84 64Z" style="fill:var(--card)"/>
+    <path d="M0 120 C60 106 110 116 170 110 C230 104 290 114 340 106 L340 150 L0 150Z" style="fill:${near}"/>
+    <path d="M0 132 C80 127 170 136 340 129 L340 150 L0 150Z" style="fill:${sea}"/>
+    <path d="M18 140 q6 -3 12 0 M120 144 q6 -3 12 0 M230 141 q6 -3 12 0" style="fill:none;stroke:var(--card);stroke-width:1.4;stroke-linecap:round"/>
+    <path d="M140 112 V96 H166 V112" style="${st}"/><path d="M140 96 Q153 78 166 96" style="${st}"/><path d="M153 84 V77" style="${st}"/>
+    <path d="M190 112 V100 H210 V112" style="${st}"/><path d="M185 101 Q200 94 215 101 M189 94 H211 V88 H189Z M187 89 Q200 83 213 89 M194 83 H206 V78 H194Z M192 79 Q200 74 208 79" style="${st}"/>
+    <path d="M262 118 Q258 104 265 92" style="fill:none;stroke:var(--ink2);stroke-width:1.6"/>
+    <path d="M265 92 q-12 -3 -19 5 M265 92 q12 -4 19 3 M265 92 q-5 -10 -13 -12 M265 92 q6 -9 14 -10" style="fill:none;stroke:var(--ink2);stroke-width:1.4;stroke-linecap:round"/>
+    <path d="M298 118 L300 92 H308 L310 118Z" style="${st}"/><path d="M297 92 H311 L309 86 H299Z" style="${st}"/>
+    <path d="M312 88 L332 82 M312 90 L332 94" style="stroke:var(--acc);stroke-width:1.3;stroke-linecap:round"/>
+    <path d="M50 136 H72 L68 141 H54Z" style="${st}"/><path d="M61 136 V120" style="stroke:var(--ink2);stroke-width:1.3"/><path d="M61 122 L70 134 H61Z" style="fill:${sail};stroke:var(--ink2);stroke-width:1"/>
+    <path d="M16 78 C70 36 150 22 218 34" style="fill:none;stroke:var(--acc);stroke-width:1.5;stroke-dasharray:3 4;stroke-linecap:round"/>
+    <path d="M0 0 L9 -1.5 L13 -7 L15.5 -7 L13.5 -1.5 L21 -2.5 L23 -5.5 L25 -5.5 L24 -1.5 L27 0 L24 1.5 L25 5.5 L23 5.5 L21 2.5 L13.5 1.5 L15.5 7 L13 7 L9 1.5Z" transform="translate(220 34) rotate(-6)" style="fill:var(--ink)"/>
+  </svg>`;
+}
+
+/* ================= 数据 ================= */
+const TRIP = { title: '意大利三城 · 7 天', dates: '3月15日 – 3月21日', left: '还有 157 天', cover: 'cover-florence-day',
+  cities: [['罗马', 3], ['佛罗伦萨', 2], ['威尼斯', 2]], ov: '<b>罗马</b> D1–3 — 高铁 — <b>佛罗伦萨</b> D4–5 — 高铁 — <b>威尼斯</b> D6–7',
+  tabs: ['罗马', '罗马', '罗马', '佛罗伦萨', '佛罗伦萨', '威尼斯', '威尼斯'] };
+const DAY2 = { i: 1, kick: 'DAY 02 · 3月16日 周二 · 罗马', title: '古罗马遗址', wx: '往年同期 7–17°C · 约 3 成日子有雨',
+  why: '三处共用一张联票，地理相邻；遗址无遮阳，安排在上午到下午早些时候。', map: 'rome-a3',
+  places: [
+    { n: '斗兽场', sub: '联票含古罗马广场与帕拉蒂尼山', dur: '2 小时', ph: 'colosseum-day2', slot: '上 午', bk: '09:30 已预约' },
+    { n: '古罗马广场', sub: '古罗马的政治与生活中心', dur: '1.5 小时', ph: 'roman-forum', slot: '下 午', hint: '午餐推荐见下方"吃什么"' },
+    { n: '帕拉蒂尼山', sub: '山顶俯瞰古罗马广场', dur: '1 小时', ph: 'palatine', slot: '下 午' } ],
+  legs: ['🚶 步行 12 分钟 · <em>约 0.9 km</em>', '🚶 步行 14 分钟 · <em>约 1.0 km</em>'],
+  food: ['carbonara', '按你的口味推荐：培根蛋面、奶酪胡椒面、炸饭团；特拉斯提弗列区小馆集中'],
+  stay: ['住宿 · 罗马 第 1–3 晚', '建议区域：万神殿 / 纳沃纳一带，多数景点步行可达'] };
+const DAY4 = { i: 3, kick: 'DAY 04 · 3月18日 周四 · 佛罗伦萨', title: '换城 · 大教堂一带', wx: '往年同期 5–15°C · 约 3 成日子有雨',
+  why: '上午换城，下午只安排老城中心，体力友好。', map: 'florence-a3',
+  trans: { slot: '上 午 · 换 城', t: '🚄 罗马 → 佛罗伦萨 · 高铁约 1.5 小时', st: '未订', tm: '时间待确认 · 已为上午预留换城时间', a: '＋ 添加我的订单' },
+  places: [
+    { n: '圣母百花大教堂', sub: '红色穹顶，佛罗伦萨地标', dur: '1.5 小时', ph: 'cover-florence-day', slot: '下 午', vf: '登顶需另行预约', hint: '视换城时间调整' },
+    { n: '领主广场', sub: '露天雕塑博物馆', dur: '40 分钟', ph: 'signoria', slot: '下 午' },
+    { n: '老桥', sub: '桥上开满金店的古桥，傍晚看阿诺河', dur: '30 分钟', ph: 'ponte-vecchio', slot: '晚 上' } ],
+  legs: ['🚶 步行 5 分钟 · <em>约 400 m</em>', '🚶 步行 4 分钟 · <em>约 300 m</em>'],
+  food: ['cover-florence-day', '按你的口味推荐：T 骨牛排、牛肚包；中央市场一带选择多'],
+  stay: ['住宿 · 佛罗伦萨 第 4–5 晚', '建议区域：圣母百花附近或中央车站周边'] };
+
+/* ================= P1 首页 ================= */
+function homeTop() {
+  return `${ST}<div class="bar"><span class="hi">你好</span><span class="me">我的行程 ›</span></div>
+    <div class="pad hero"><div class="kicker" style="margin-top:8px">TRAVEL JOURNAL</div>
+      <h1 class="serif">下一趟，<br>想去哪里？</h1><div class="ill">${illus()}</div><div class="pbtn">开始规划</div></div>`;
+}
+const more = `<div class="rule">更多方式</div><div class="more"><div>导入一篇攻略<small>整理成行程，查漏补缺 · 后续</small></div><div>不知道去哪？<small>和 AI 聊聊目的地 · 后续</small></div></div><div style="height:28px"></div>`;
+const tripCard = `<div class="trip"><div class="cover" style="${img(TRIP.cover)}"><span>${TRIP.left}</span></div><div class="body">
+  <h2 class="serif">${TRIP.title}</h2><div class="meta">${TRIP.dates}</div>
+  <div class="stops">${TRIP.cities.map(c => `<span>${c[0]} <small>${c[1]}晚</small></span>`).join('<i></i>')}</div>
+  <div class="acts"><span class="link">查看行程 →</span><span class="soft">📕 导入小红书帖子</span></div></div></div>
+  <div style="text-align:right;margin-top:6px" class="tiny">归档</div>`;
+const doneRow = `<div class="rule">最近完成<a>全部 ›</a></div><div class="done"><div class="th" style="${img('kyoto')}"></div><div><b>京都 4 天</b><span class="tagok">✓ 已完成</span><div class="meta">2025.11 · 日期已过，自动归档</div></div></div>`;
+const P1a = () => phone(`${homeTop()}<div class="pad"><div class="rule">即将出发</div>${tripCard}${doneRow}${more}</div>`);
+const P1b = () => phone(`${homeTop()}<div class="pad"><div class="rule">还没有行程，先看看一份示例？</div>
+  <div class="trip"><div class="cover" style="${img('hero-rome-rooftops')};background-position:center 40%"></div><div class="body">
+  <h2 class="serif">罗马 3 天<span class="sample">示例</span></h2><div class="meta">古迹与城市漫步 · 适中节奏</div>
+  <div class="hl" style="font-size:13.5px;color:var(--ink2);margin:10px 0">万神殿 · 斗兽场 · 梵蒂冈博物馆</div>
+  <div class="acts"><span class="link">查看示例 →</span><span class="soft">可以此为基础创建</span></div></div></div>${more}</div>`);
+const P1c = () => phone(`${homeTop()}<div class="pad"><div class="rule">正在规划</div>
+  <div class="trip" style="padding:14px 16px;display:flex;gap:12px;align-items:flex-start"><div class="spin" style="margin-top:2px"></div><div>
+  <b style="font-size:15px">罗马 · 佛罗伦萨 · 威尼斯 · 7 天</b><div class="meta" style="color:var(--ink2)">正在规划顺路的每日动线 · 第 4 步，共 6 步</div>
+  <div class="meta">在后台生成，可以先做别的，完成后会出现在这里</div></div></div>
+  ${doneRow}${more}</div>`);
+const Mine = () => phone(`${ST}<div class="top2"><span class="ib">‹</span><span class="t serif">我的行程</span><span class="r"></span></div><div class="pad">
+  <div class="rule">规划中</div>
+  <div class="done"><div class="th" style="${img(TRIP.cover)}"></div><div style="flex:1"><b>${TRIP.title}</b><div class="meta">${TRIP.dates} · ${TRIP.left}</div></div><span class="tiny" style="color:var(--ink2)">归档</span></div>
+  <div class="rule">已完成</div>
+  <div class="done"><div class="th" style="${img('kyoto')}"></div><div style="flex:1"><b>京都 4 天</b><span class="tagok">✓ 已完成</span><div class="meta">2025.11 · 日期已过，自动归档</div></div></div>
+  <div class="done"><div class="th" style="${img('tokyo')}"></div><div style="flex:1"><b>东京 5 天</b><span class="tagok">✓ 已完成</span><div class="meta">2025.04 · 手动归档</div></div><span class="tiny" style="color:var(--ink2)">恢复</span></div>
+  <div class="rule">示例</div>
+  <div class="done"><div class="th" style="${img('hero-rome-rooftops')}"></div><div style="flex:1"><b>罗马 3 天</b><span class="sample">示例</span><div class="meta">古迹与城市漫步</div></div><span class="tiny" style="color:var(--ink2)">删除</span></div>
+  <div class="rule">其他</div>
+  <div class="done" style="justify-content:space-between"><span>设置</span><span class="tiny">›</span></div>
+  <div class="done" style="justify-content:space-between"><span>关于</span><span class="tiny">›</span></div></div>`);
+
+/* ================= P2 创建 ================= */
+const P2a = () => phone(`${ST}<div class="top2"><span class="ib">‹</span><span class="t serif">新建行程</span><span class="r">1/2</span></div>
+  <div class="prog"><i class="on"></i><i></i></div><div class="pad">
+  <div class="fl">目的地城市<em>*</em><small>可多个，拖动调整顺序</small></div>
+  <div class="inp"><span class="tok"><span class="dr">⋮⋮</span>罗马<i>✕</i></span><span class="tok"><span class="dr">⋮⋮</span>佛罗伦萨<i>✕</i></span><span class="tok"><span class="dr">⋮⋮</span>威尼斯<i>✕</i></span></div>
+  <div class="fl">天数<em>*</em></div>
+  <div class="stepper"><span>－</span><b class="num">7</b><span>＋</span><small class="hint2" style="margin:0">天 · 与日期联动</small></div>
+  <div class="fl">具体日期<small>可选</small></div>
+  <div class="inp datef"><span>📅 2027 年 3月15日 – 3月21日</span><a>清除</a></div>
+  <div class="fl">必去<small>可选</small></div>
+  <div class="inp focus"><span class="tok">万神殿<i>✕</i></span><span>梵<span class="caret" style="display:inline-block;vertical-align:-3px"></span></span></div>
+  <div class="sug"><div><b><u>梵</u>蒂冈博物馆</b><small>罗马 · 博物馆</small></div><div><b>圣彼得大教堂（<u>梵</u>蒂冈）</b><small>罗马 · 教堂</small></div></div>
+  <div class="hint2">只能选择搜索结果中的地点，确保能在地图上定位</div>
+  <div class="fl">不去<small>可选</small></div>
+  <div class="inp"><span class="ph2">搜索地点</span></div>
+  <div class="fl">已有预订<small>可选</small></div>
+  <div class="inp ta">一句话描述，如：第 2 天上午已订斗兽场 9:30</div>
+  <div style="height:20px"></div></div>
+  <div class="fix foot2"><span class="pbtn">下一步</span></div>`);
+const P2b = () => phone(`${ST}<div class="top2"><span class="ib">‹</span><span class="t serif">新建行程</span><span class="r">2/2</span></div>
+  <div class="prog"><i class="on"></i><i class="on"></i></div><div class="pad">
+  <div class="fl">节奏</div>
+  <div class="seg3"><span>紧凑</span><span class="on">适中</span><span>宽松</span></div>
+  <div class="hint2">每天 3–4 个地点，留出午休或咖啡时间，不赶</div>
+  <div class="fl">兴趣<small>多选，可自定义</small></div>
+  <div class="chips">${['历史古迹', '博物馆美术馆', '自然风光', '海滩海岛', '城市漫步', '市集夜市', '当地美食', '咖啡甜品', '拍照打卡', '小众秘境', '购物', '演出与体验'].map(x => `<span class="chip${/博物馆|城市漫步|当地美食/.test(x) ? ' on' : ''}">${x}</span>`).join('')}<span class="chip on">文艺复兴绘画</span><span class="chip add">＋ 自定义</span></div>
+  <div class="fl">同行人</div>
+  <div class="seg3"><span>独自</span><span class="on">朋友</span><span>情侣</span><span>家庭</span></div>
+  <div class="fl">其他想法<small>可选</small></div>
+  <div class="inp ta">比如：不想太早起床、想留一个下午逛街</div>
+  <div class="hint2">偏好都可以跳过，生成后在行程页也能再告诉 AI</div>
+  <div style="height:20px"></div></div>
+  <div class="fix foot2"><span class="sbtn">跳过</span><span class="pbtn">生成行程</span></div>`);
+
+/* ================= P3 生成中 ================= */
+const sumc = `<div class="sumc"><div><span>目的地</span><span>罗马 → 佛罗伦萨 → 威尼斯</span></div><div><span>时间</span><span>7 天 · 3月15日 – 3月21日</span></div><div><span>偏好</span><span>适中 · 美术馆 · 城市漫步 · 美食 · 朋友</span></div></div>`;
+const STAGES = [['理解你的偏好与旅行节奏', '适中节奏 · 偏爱美术馆与城市漫步'], ['为每座城市安排合适的天数', '罗马 3 天 · 佛罗伦萨 2 天 · 威尼斯 2 天'], ['挑选最适合你的地点', '保留你的必去：万神殿、梵蒂冈博物馆'],
+  ['规划顺路的每日动线', '同一区域的地点安排在同一天'], ['核对开放时间与预约要求', ''], ['结合往年同期天气调整室内外安排', '']];
+const P3a = () => phone(`${ST}<div class="top2"><span class="ib"></span><span class="t serif">为你规划中</span><span class="r"></span></div><div class="pad" style="padding-top:8px">${sumc}
+  <ul class="stages">${STAGES.map((s, i) => `<li class="${i < 3 ? 'done' : i === 3 ? 'now' : 'todo'}"><span class="d">${i < 3 ? '✓' : ''}</span><div><b>${s[0]}</b>${i <= 3 && s[1] ? `<small>${s[1]}</small>` : ''}</div></li>`).join('')}</ul>
+  <div class="bgnote">规划需要一点时间。你可以先离开，行程会在后台继续生成，完成后在首页查看。</div><div style="height:20px"></div></div>
+  <div class="fix foot2"><span class="sbtn">取消规划</span><span class="pbtn">先去逛逛</span></div>`);
+const P3b = () => phone(`${ST}<div class="top2"><span class="ib"></span><span class="t serif">为你规划中</span><span class="r"></span></div><div class="pad" style="padding-top:8px">${sumc}
+  <div class="alertc"><h4>条件有冲突，需要你选一下</h4><p>你选了 12 个必去地点，7 天、适中节奏排不下，大约多出 3 个。</p>
+  <div class="opt"><span>增加到 9 天<small>保留全部必去</small></span><span>改为紧凑节奏<small>每天多 1–2 个地点</small></span><span class="rec">让 AI 取舍<small>放不下的放进"待安排"</small></span></div></div>
+  <div class="alertc"><h4>生成失败</h4><p>网络不稳定，已保留你填写的条件。</p><div class="opt" style="flex-direction:row"><span class="pbtn" style="flex:1;justify-content:center">重试</span></div></div>
+  <p class="hint2" style="margin-top:10px">上方为两种异常状态：条件冲突（需要用户决定）与生成失败（可重试）。</p><div style="height:20px"></div></div>`);
+
+/* ================= P4 结果 ================= */
+function placeRow(x, i, edit) {
+  const meta = `${x.bk ? `<span class="bk">🔒 ${x.bk}</span>` : ''}${x.vf ? `<span class="vf">？待核实 · ${x.vf}</span>` : ''}<span>停留约 ${x.dur}</span>`;
+  if (edit) return `<div class="pl3${x.drag ? ' drag' : ''}"><div class="hdl">⋮⋮</div><div class="n num">${i + 1}</div><div><h4>${x.n}</h4><p>${x.sub}</p></div><div class="acts2"><span>⇄ 移到</span><span>🗑</span></div></div>`;
+  return `<div class="pl3"><div class="n num">${i + 1}</div><div><h4>${x.n}${x.isNew ? '<span class="newtag">新加入</span>' : ''}</h4><p>${x.sub}</p><div class="m">${meta}</div></div><div class="thumb" style="${img(x.ph)}"></div></div>`;
+}
+function dayHead(d, opt = {}) {
+  return `${ST}<div class="nav"><span class="ib">‹</span><span class="t serif">${TRIP.title}</span><span class="ex">⤓ 导出</span></div>
+    <div class="ov">${TRIP.ov}</div>
+    <div class="days"><div class="sc">${TRIP.tabs.map((c, i) => `<div class="${i === d.i && !opt.pool ? 'on' : ''}"><b class="num">${i + 1}</b><span>${c}</span></div>`).join('')}</div><span class="pool" style="${opt.pool ? 'background:var(--tint);font-weight:600' : ''}">待安排 ${opt.poolN || 2}</span></div>`;
+}
+function result(d, opt = {}) {
+  let body = '', last = '';
+  if (d.trans) body += `<div class="slot3">${d.trans.slot}</div><div class="trc"><div class="h"><span>${d.trans.t}</span><span class="st">${d.trans.st}</span></div><div class="tm">${d.trans.tm}</div><span class="a">${d.trans.a}</span></div>`;
+  d.places.forEach((x, i) => {
+    if (i > 0) body += `<div class="leg3">${d.legs[i - 1]}</div>`;
+    if (x.slot !== last) { body += `<div class="slot3">${x.slot}${x.hint && !opt.edit ? `<small>${x.hint}</small>` : ''}</div>`; last = x.slot; }
+    body += placeRow(x, i, opt.edit);
+  });
+  const head = `<div class="dh"><div class="kick">${d.kick}</div><div class="row"><h2 class="serif">${d.title}</h2>${opt.edit ? '' : '<span class="ed">✎ 调整</span>'}</div>
+    <div class="facts">${d.wx}</div><div class="whyrow"><div>为什么这样排：${d.why}</div><span>展开</span></div></div>
+    ${opt.warn ? `<div class="warnbar"><span>⚠ ${opt.warn}</span><span class="go">让 AI 调整这一天</span></div>` : ''}
+    <div class="map3" style="background-image:url('assets/maps/${d.map}.png')"></div>`;
+  const tail = opt.edit ? '<div style="height:30px"></div>' : `<div class="add3">＋ 添加到第 ${d.i + 1} 天</div>
+      <div class="blk3"><div class="bh"><b class="serif">吃什么</b><a>＋ 添加餐厅</a></div><div class="bd"><div class="thumb" style="${img(d.food[0])}"></div><div>${d.food[1]}</div></div></div>
+      <div class="blk3"><div class="bh"><b class="serif">${d.stay[0]}</b><a>＋ 添加</a></div><div class="bd"><div>${d.stay[1]}</div></div></div><div style="height:30px"></div>`;
+  const foot = opt.edit ? `<div class="fix editbar"><span style="flex:1">拖动调整顺序；删除的地点会移入"待安排"</span><span class="pbtn">完成</span></div>`
+    : `<div class="fix ai3"><span class="x">📕 帖子</span><span class="in">告诉 AI 怎么改</span><span class="send">↑</span></div>`;
+  return `${dayHead(d)}<div class="${opt.edit ? 'edit' : ''}">${head}<div class="pad">${body}${tail}</div></div>${foot}`;
+}
+const P4a = () => phone(result(DAY2));
+const P4b = () => phone(result(DAY4));
+const P4c = () => phone(`${dayHead(DAY2, { pool: true, poolN: 3 })}
+  <div class="poolintro">还没排进某一天的地点和餐厅都在这里。添加时 AI 会建议放在哪天，也可以先放着。</div>
+  <div class="pad"><div class="add3" style="margin-top:12px">＋ 添加景点 / 餐厅</div>
+  <div class="slot3">景 点</div>
+  ${placeRow({ n: '博尔盖塞美术馆', sub: '贝尼尼雕塑与卡拉瓦乔，需提前预约', dur: '2 小时', ph: 'borghese', vf: '预约时段待核实', isNew: true }, -1).replace('<div class="n num">0</div>', '<div class="n num">·</div>')}
+  <div class="poolrow"><span class="sel"><span><em>AI 建议</em>第 3 天 · 罗马</span><span>▾</span></span><span class="minibtn">排入</span></div>
+  ${placeRow({ n: '特雷维喷泉', sub: '许愿池，夜晚灯光下人少一些', dur: '30 分钟', ph: 'trevi' }, -1).replace('<div class="n num">0</div>', '<div class="n num">·</div>')}
+  <div class="poolrow"><span class="sel"><span><em>AI 建议</em>第 1 天 · 罗马</span><span>▾</span></span><span class="minibtn">排入</span></div>
+  <div class="slot3">餐 厅</div>
+  ${placeRow({ n: "Sant'Eustachio 咖啡", sub: '来自小红书帖子 · 万神殿旁的老咖啡馆', dur: '30 分钟', ph: 'pantheon', isNew: true }, -1).replace('<div class="n num">0</div>', '<div class="n num">·</div>')}
+  <div class="poolrow"><span class="sel"><span><em>AI 建议</em>第 1 天 · 罗马</span><span>▾</span></span><span class="minibtn">排入</span></div>
+  <p class="hint2">餐厅排入后进入当天的"吃什么"，可再放进时间线。</p><div style="height:30px"></div></div>
+  <div class="fix ai3"><span class="x">📕 帖子</span><span class="in">告诉 AI 怎么改</span><span class="send">↑</span></div>`);
+const P4d = () => {
+  const d = JSON.parse(JSON.stringify(DAY2)); d.places[1].drag = true;
+  return phone(result(d, { edit: true }));
+};
+const P4e = () => phone(result(DAY2, { warn: '第 2 天下午安排较满' }), sheet('AI 建议的修改 · 第 2 天', `
+  <p style="font-size:13.5px;color:var(--ink2);margin-bottom:6px">你说："第 2 天轻松一点"。只改第 2 天，其他天不变；已预约的斗兽场 09:30 不会移动。</p>
+  <div class="diffr"><span class="k out">移出</span><div><s>帕拉蒂尼山</s><small>移到"待安排"，可改天再去</small></div></div>
+  <div class="diffr"><span class="k in">新增</span><div>下午留出约 1 小时自由时间<small>在古罗马广场附近喝杯咖啡、随便逛逛</small></div></div>
+  <div class="diffr" style="border:none"><span class="k out">不变</span><div style="color:var(--ink2)">斗兽场 09:30 · 古罗马广场</div></div>
+  <p style="font-size:12.5px;color:var(--ink3);margin-top:6px">理由：下午两处遗址都在户外且无遮阳，去掉一站后节奏更从容。</p>
+  <div class="foot2" style="padding:14px 0 0;background:none"><span class="sbtn">放弃</span><span class="pbtn">接受</span></div>`));
+const P4f = () => phone(result(DAY2), `<div class="toast2"><span>已修改第 2 天</span><u>撤回</u></div>`);
+
+/* ================= P5 地点详情 ================= */
+const P5 = () => phone(result(DAY2), sheet('斗兽场', `
+  <div class="dhero" style="${img('colosseum-day2')}"><small>© Wikimedia Commons</small></div>
+  <p style="font-size:15px;font-weight:600">古罗马最大的圆形竞技场</p>
+  <p style="font-size:13.5px;color:var(--ink2);margin-top:2px">罗马的标志；与古罗马广场、帕拉蒂尼山同一张联票，所以安排在同一天。</p>
+  <div style="margin-top:8px"><div class="kv"><span>建议时长</span><span>约 2 小时</span></div>
+  <div class="kv"><span>开放时间</span><span>上午开放，闭馆时间随季节变化<small style="display:block;color:var(--ink3);font-size:12px">来源：官方网站 · 出行前请再确认</small></span></div>
+  <div class="kv"><span>预约</span><span>必须预约，分时段入场</span></div></div>
+  <div class="fold">怎么玩<span>展开 ›</span></div>
+  <div class="lks"><span>官网</span><span>购票</span><span>小红书笔记</span><span class="p">在地图中导航</span></div>
+  <div class="rule" style="margin:16px 0 8px">我的信息</div>
+  <div class="inp" style="border-color:var(--ink)">🔒 09:30 已预约 <span style="margin-left:auto;font-size:12.5px;color:var(--ink3)">时间将固定</span></div>
+  <div class="inp ta" style="margin-top:8px">备注，如取票方式、集合地点</div>`, '86%'));
+
+/* ================= P6 调整与添加 ================= */
+const P6a = () => phone(result(DAY2), sheet('添加到待安排', `
+  <div class="seg3" style="margin-bottom:8px"><span class="on">景点</span><span>餐厅</span><span>小红书帖子</span></div>
+  <p class="hint2" style="margin:0 0 8px">AI 会建议放在哪天，也可以先留在待安排</p>
+  <div class="inp focus">🔍 博尔<span class="caret" style="display:inline-block"></span></div>
+  <div class="res">
+    <div class="r"><div class="t1"><span class="cb on">✓</span><b>博尔盖塞美术馆</b><span class="ktag">景点</span></div><div class="st2">罗马 · 需提前预约</div><span class="sel"><span><em>AI 建议</em>第 3 天 · 罗马</span><span>▾</span></span></div>
+    <div class="r"><div class="t1"><span class="cb"></span><b>博尔盖塞公园</b><span class="ktag">景点</span></div><div class="st2">罗马 · 城市公园</div></div>
+    <div class="r"><div class="t1"><span class="cb"></span><b>博尔戈区</b><span class="ktag">区域</span></div><div class="st2">罗马 · 梵蒂冈附近的老街区</div></div></div>
+  <div class="pbtn" style="margin-top:14px">按所选位置加入</div>`, '78%'));
+const P6b = () => phone(result(DAY2), sheet('从小红书帖子添加', `
+  <div class="inp ta" style="color:var(--ink);font-size:13px;line-height:1.55">罗马三天私藏：万神殿旁边的 Sant'Eustachio 咖啡超好喝；特拉斯提弗列的 Da Enzo 要排队；博尔盖塞美术馆一定要提前约！顺便说一句，那不勒斯的 Sorbillo 披萨也绝了。</div>
+  <div class="shots"><div><i></i><b>✕</b></div><div><i></i><b>✕</b></div><div class="up">＋</div></div>
+  <div class="fl" style="margin-top:14px">识别到 5 个地点<small>勾选要加入的，可改放入位置</small></div>
+  <div class="res">
+    <div class="r"><div class="t1"><span class="cb on">✓</span><b>Sant'Eustachio 咖啡</b><span class="ktag">餐厅</span></div><div class="q">"万神殿旁边的 Sant'Eustachio 咖啡超好喝"</div><div class="st2">建议：<b>第 1 天</b>（离万神殿近）</div></div>
+    <div class="r"><div class="t1"><span class="cb on">✓</span><b>Da Enzo al 29</b><span class="ktag">餐厅</span></div><div class="q">"特拉斯提弗列的 Da Enzo 要排队"</div><div class="st2"><span class="vf">？待核实 · 地点库中未找到，已按名称找到 1 个候选</span></div><div class="st2">建议：<b>第 2 天</b> 晚餐</div></div>
+    <div class="r"><div class="t1"><span class="cb on">✓</span><b>博尔盖塞美术馆</b><span class="ktag">景点</span></div><div class="q">"博尔盖塞美术馆一定要提前约"</div><div class="st2">⚠ 必须预约 · 建议：<b>先放进待安排</b>（这几天都较满）</div></div>
+    <div class="r dis"><div class="t1"><span class="cb dis"></span><b>万神殿</b></div><div class="st2">已在第 1 天</div></div>
+    <div class="r dis"><div class="t1"><span class="cb dis"></span><b>Sorbillo 披萨</b></div><div class="st2">在那不勒斯，不在本次行程的城市</div></div></div>
+  <div class="pbtn" style="margin-top:14px">按所选位置加入</div>`, '88%'));
+const P6c = () => phone(result(DAY2), sheet('从小红书帖子添加', `
+  <div class="inp ta">粘贴帖子文字</div>
+  <div class="shots"><div><i></i><b>✕</b></div><div class="up">＋</div></div>
+  <div class="failc"><h4>没有识别到地点</h4><p>可能是截图不清晰，或帖子里没有具体的地名。</p>
+  <div class="o"><span>重新识别</span><span>改为粘贴文字</span><span>手动搜索添加</span></div></div>`, '56%'));
+
+/* ================= P7 导出 ================= */
+const P7a = () => phone(result(DAY2), sheet('导出', `
+  <div class="exo on"><span class="rd"></span><div><b>长图</b><small>适合手机保存、发给朋友</small></div></div>
+  <div class="exo"><span class="rd"></span><div><b>Word</b><small>可编辑，手机电脑都能打开</small></div></div>
+  <div class="exo"><span class="rd"></span><div><b>Markdown</b><small>复制后可粘贴到 Notion、飞书、Obsidian</small></div></div>
+  <p class="hint2">在微信里打开时，长图生成后长按保存；Word 需在浏览器中打开后下载。</p>
+  <div class="pbtn" style="margin-top:12px">生成长图</div>`, '62%'));
+function longImg() {
+  const days = [['抵达 · 老城散步', '万神殿 · 纳沃纳广场 · 特雷维喷泉'], ['古罗马遗址', '斗兽场 09:30 · 古罗马广场 · 帕拉蒂尼山'], ['梵蒂冈', '梵蒂冈博物馆 · 圣彼得大教堂 · 圣天使堡'],
+    ['换城 · 大教堂一带', '高铁到佛罗伦萨 · 圣母百花大教堂 · 领主广场 · 老桥'], ['美术馆日', '乌菲兹美术馆 · 学院美术馆 · 米开朗基罗广场'], ['换城 · 圣马可', '高铁到威尼斯 · 圣马可广场 · 总督宫'], ['离岛 · 返程', '布拉诺岛 · 里亚托桥']];
+  return `<div class="A3 li"><div class="lc" style="${img(TRIP.cover)}"></div><div class="lb"><div class="kicker">TRAVEL JOURNAL</div><h2 class="serif">${TRIP.title}</h2>
+    <div class="meta" style="color:var(--ink2)">2027 · ${TRIP.dates} · 罗马 → 佛罗伦萨 → 威尼斯</div></div>
+    ${days.map((d, i) => `<div class="lday"><div class="n num">${String(i + 1).padStart(2, '0')}</div><div><b>${d[0]}</b><p>${d[1]}</p></div></div>${i === 1 ? `<div class="lmap" style="background-image:url('assets/maps/rome-a3.png')"></div>` : ''}`).join('')}
+    <div class="lf"><span>由 AI 生成，出行前请核对开放时间与预约</span><span>出境游规划助手</span></div></div>`;
+}
+const P7b = () => `<div class="phone"><div class="wx-over"><div class="tp"><b>‹ 长图预览</b><span>···</span></div><div class="img">${longImg()}</div><div class="bt">长按图片，保存到相册或发送给朋友</div></div></div>`;
+
+/* ================= 页面目录 ================= */
+const GROUPS = [
+  { id: 'p1', t: 'P1 首页 与 我的行程', d: '顶部是插画与"开始规划"；中部是即将出发的行程；最近完成的行程常驻首页。新用户看到示例；生成中的行程在后台继续。',
+    s: [['有行程', P1a], ['新用户 · 示例行程', P1b], ['后台生成中', P1c], ['我的行程', Mine]] },
+  { id: 'p2', t: 'P2 创建行程', d: '两步。1/2 是范围与硬约束：城市、天数与日期联动、必去 / 不去（只能选搜索结果）、已有预订；2/2 是软偏好，可跳过。',
+    s: [['1/2 基本信息 · 必去联想', P2a], ['2/2 偏好', P2b]] },
+  { id: 'p3', t: 'P3 生成中', d: '阶段与真实执行状态对应，文案面向用户；可以离开，后台继续。异常分两类：条件冲突（让用户选）与生成失败（重试）。',
+    s: [['进行中', P3a], ['条件冲突 / 生成失败', P3b]] },
+  { id: 'p4', t: 'P4 行程结果', d: '核心页：全程概览 → 日期切换（待安排固定在右侧）→ 当天主题与理由 → 地图（编号与卡片一致）→ 按时段的地点与交通 → 吃什么 → 住宿；底部是 AI 输入与帖子入口。',
+    s: [['第 2 天', P4a], ['换城日 · 交通未订', P4b], ['待安排', P4c], ['编辑模式 · 拖动中', P4d], ['AI 修改待确认', P4e], ['接受后可撤回', P4f]] },
+  { id: 'p5', t: 'P5 地点详情', d: '从卡片点开的底部弹层：照片、一句话、为什么排在这里、时长 / 开放时间（注明来源与核对提醒）/ 预约、外链，以及"我的信息"（已预约时间会固定进行程）。',
+    s: [['斗兽场', P5]] },
+  { id: 'p6', t: 'P6 调整与添加', d: '添加时 AI 建议放哪天；小红书帖子支持粘贴与截图，识别结果逐项给出建议位置，重复和不在行程城市的地点自动排除，地点库外的标"待核实"。',
+    s: [['搜索添加', P6a], ['帖子识别结果', P6b], ['识别失败', P6c]] },
+  { id: 'p7', t: 'P7 导出', d: '长图 / Word / Markdown。微信内不能下载文件，长图生成后全屏显示，长按保存。',
+    s: [['导出选项', P7a], ['长图预览 · 微信内', P7b]] },
+];
+document.getElementById('toc').innerHTML = GROUPS.map(g => `<a href="#${g.id}">${g.t.split(' ')[0]}<small>${g.t.split(' ').slice(1).join(' ')}</small></a>`).join('');
+document.getElementById('screens').innerHTML = GROUPS.map(g => `<section class="grp" id="${g.id}"><h2>${g.t}</h2><p class="gd">${g.d}</p>
+  <div class="row">${g.s.map(s => `<div class="cell">${s[1]()}<div class="cap">${s[0]}</div></div>`).join('')}</div></section>`).join('');
+
+</script>
+</body>
+</html>

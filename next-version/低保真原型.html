@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>低保真原型 · 出境游规划助手</title>
+<style>
+  :root {
+    --bg: #ecebe8; --paper: #ffffff; --ink: #222; --ink-2: #666; --ink-3: #999;
+    --line: #d6d4cf; --fill: #eeeeec; --fill-2: #e2e1dd; --dark: #333; --hi: #555;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    font-size: 14px; line-height: 1.5;
+  }
+  button { font: inherit; cursor: pointer; }
+  .stage { display: flex; gap: 28px; justify-content: center; align-items: flex-start; padding: 28px 16px 60px; flex-wrap: wrap; }
+
+  /* phone */
+  .phone { width: 375px; height: 780px; background: var(--paper); border: 10px solid #444; border-radius: 36px; overflow: hidden; position: relative; flex-shrink: 0; }
+  .screen { position: absolute; inset: 0; display: none; flex-direction: column; background: var(--paper); }
+  .screen.on { display: flex; }
+  .bar { height: 52px; display: flex; align-items: center; gap: 8px; padding: 0 14px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+  .bar .t { flex: 1; font-weight: 700; font-size: 16px; text-align: center; }
+  .icon { width: 32px; height: 32px; border: 1px solid var(--line); border-radius: 8px; background: var(--fill); display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--ink-2); }
+  .body { flex: 1; overflow-y: auto; padding: 14px; }
+  .foot { padding: 12px 14px; border-top: 1px solid var(--line); flex-shrink: 0; display: flex; gap: 8px; }
+
+  .btn { border: 1px solid var(--dark); background: var(--paper); color: var(--ink); border-radius: 10px; padding: 10px 14px; font-weight: 600; }
+  .btn.pri { background: var(--dark); color: #fff; }
+  .btn.full { flex: 1; }
+  .btn:disabled { opacity: .35; cursor: not-allowed; }
+  .btn.sm { padding: 5px 10px; font-size: 12.5px; border-radius: 8px; }
+
+  .lbl { font-size: 12px; color: var(--ink-2); font-weight: 700; margin: 14px 0 6px; display: flex; justify-content: space-between; }
+  .lbl:first-child { margin-top: 0; }
+  .lbl .req { color: var(--ink); }
+  .hint { font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+  .box { border: 1px dashed var(--line); background: var(--fill); border-radius: 10px; padding: 10px 12px; color: var(--ink-2); }
+  .field { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--paper); width: 100%; font: inherit; color: var(--ink); }
+  textarea.field { resize: none; height: 64px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 4px 11px; font-size: 13px; color: var(--ink); }
+  .chip.on { background: var(--dark); color: #fff; border-color: var(--dark); }
+  .chip.city { background: var(--fill-2); border-color: var(--fill-2); display: inline-flex; gap: 6px; align-items: center; }
+  .chip.city .h { color: var(--ink-3); }
+  .seg { display: flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .seg button { flex: 1; border: none; background: var(--paper); padding: 8px 0; font-size: 13px; }
+  .seg button.on { background: var(--dark); color: #fff; }
+  .stepper { display: flex; align-items: center; gap: 12px; }
+  .stepper b { font-size: 18px; min-width: 40px; text-align: center; }
+  .dropdown { border: 1px solid var(--line); border-radius: 10px; margin-top: 6px; overflow: hidden; display: none; }
+  .dropdown.on { display: block; }
+  .dropdown div { padding: 8px 12px; border-bottom: 1px solid var(--fill); }
+  .dropdown div:last-child { border-bottom: none; }
+  .dropdown div:hover { background: var(--fill); }
+  .dropdown .grp { font-size: 11px; color: var(--ink-3); background: var(--fill); padding: 4px 12px; }
+
+  /* list */
+  .trip { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-bottom: 10px; cursor: pointer; }
+  .trip .img { height: 90px; background: var(--fill-2); display: flex; align-items: center; justify-content: center; color: var(--ink-3); font-size: 12px; }
+  .trip .info { padding: 10px 12px; }
+  .trip .info b { display: block; }
+  .empty { text-align: center; padding: 80px 20px; color: var(--ink-2); }
+  .empty .ph { width: 90px; height: 90px; margin: 0 auto 14px; border-radius: 50%; background: var(--fill-2); }
+  .fab { position: absolute; right: 18px; bottom: 22px; }
+
+  /* home */
+  .hero2 { background: var(--fill); border-radius: 16px; padding: 16px; min-height: 230px; display: flex; flex-direction: column; gap: 10px; justify-content: center; margin-bottom: 16px; }
+  .hero2 b { font-size: 18px; }
+  .up { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin-bottom: 16px; cursor: pointer; }
+  .up .cover { height: 110px; background: var(--fill-2); display: flex; align-items: center; justify-content: center; color: var(--ink-3); font-size: 12px; }
+  .up .in { padding: 10px 12px; }
+  .hl { display: flex; gap: 8px; margin: 8px 0 10px; }
+  .hl div { flex: 1; text-align: center; font-size: 11px; color: var(--ink-2); }
+  .hl div i { display: block; height: 46px; background: var(--fill-2); border-radius: 8px; margin-bottom: 3px; }
+  .tiles { display: flex; gap: 8px; margin-bottom: 16px; }
+  .tile { flex: 1; border: 1px solid var(--line); border-radius: 12px; padding: 10px; cursor: pointer; }
+  .tile b { display: block; font-size: 13px; }
+  .tile small { color: var(--ink-3); font-size: 11.5px; }
+  .tagx { display: inline-block; font-size: 11px; background: var(--fill-2); border-radius: 4px; padding: 0 6px; color: var(--ink-2); margin-left: 4px; }
+  .banner { background: var(--dark); color: #fff; font-size: 12.5px; padding: 6px 14px; flex-shrink: 0; display: none; }
+  .sample .banner { display: block; }
+  .sample .aibar, .sample #menuIcon { display: none !important; }
+  .samplebar { display: none !important; }
+  .sample .samplebar { display: flex !important; }
+
+  /* typeahead & calendar */
+  .ta { position: relative; }
+  .ta .box2 { border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; background: var(--paper); }
+  .ta .box2 input { border: none; outline: none; flex: 1; min-width: 90px; font: inherit; padding: 4px; }
+  .ta .sug { position: absolute; left: 0; right: 0; top: 100%; margin-top: 4px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; z-index: 5; display: none; box-shadow: 0 4px 14px rgba(0,0,0,.08); max-height: 220px; overflow-y: auto; }
+  .ta .sug.on { display: block; }
+  .ta .sug div { padding: 8px 12px; border-bottom: 1px solid var(--fill); cursor: pointer; display: flex; justify-content: space-between; }
+  .ta .sug div:hover { background: var(--fill); }
+  .ta .sug div small { color: var(--ink-3); }
+  .ta .sug .none { color: var(--ink-3); cursor: default; }
+  .ta .sug .none:hover { background: none; }
+  .datef { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+  .cal { border: 1px solid var(--line); border-radius: 12px; padding: 10px; margin-top: 6px; display: none; }
+  .cal.on { display: block; }
+  .cal .hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-weight: 700; }
+  .cal .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; font-size: 12.5px; }
+  .cal .grid .w { color: var(--ink-3); font-size: 11px; }
+  .cal .grid .d { padding: 6px 0; border-radius: 6px; cursor: pointer; }
+  .cal .grid .d:hover { background: var(--fill); }
+  .cal .grid .d.in { background: var(--fill-2); border-radius: 0; }
+  .cal .grid .d.s, .cal .grid .d.e { background: var(--dark); color: #fff; border-radius: 6px; }
+  .cal .rule2 { font-size: 11.5px; color: var(--ink-3); margin-top: 6px; }
+  .heroArt { flex: 1; min-height: 120px; border-radius: 12px; border: 2px dashed var(--line); display: flex; align-items: center; justify-content: center; color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px; }
+
+  /* pace & interests */
+  .pace { display: flex; flex-direction: column; gap: 6px; }
+  .pace button { text-align: left; border: 1px solid var(--line); background: var(--paper); border-radius: 10px; padding: 8px 12px; }
+  .pace button b { display: block; font-size: 13.5px; }
+  .pace button small { color: var(--ink-3); font-size: 12px; }
+  .pace button.on { border: 2px solid var(--dark); padding: 7px 11px; }
+  .ig { margin-bottom: 8px; }
+  .ig .gt { font-size: 12px; color: var(--ink-2); margin-bottom: 4px; }
+  .stages li:not(.done) small { display: none !important; }
+  .stages li small { display: block; font-size: 11.5px; color: var(--ink-3); font-weight: 400; }
+  .bgnote { background: var(--fill); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; color: var(--ink-2); margin-top: 14px; }
+  .genning { border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 16px; display: flex; gap: 12px; align-items: center; }
+  .genning .sp { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--dark); animation: spin 1s linear infinite; flex-shrink: 0; }
+
+  /* generating */
+  .sum { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin-bottom: 14px; }
+  .sum div { display: flex; gap: 8px; font-size: 13px; padding: 2px 0; }
+  .sum div span:first-child { color: var(--ink-3); width: 56px; flex-shrink: 0; }
+  .stages { list-style: none; padding: 0; margin: 0; }
+  .stages li { display: flex; gap: 10px; align-items: center; padding: 8px 0; color: var(--ink-3); }
+  .stages li .d { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line); flex-shrink: 0; }
+  .stages li.done { color: var(--ink); }
+  .stages li.done .d { background: var(--dark); border-color: var(--dark); }
+  .stages li.doing { color: var(--ink); font-weight: 700; }
+  .stages li.doing .d { border-color: var(--dark); border-top-color: transparent; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .alert { border: 2px solid var(--dark); border-radius: 12px; padding: 12px; margin-top: 14px; }
+  .alert b { display: block; margin-bottom: 4px; }
+  .alert .opts { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+
+  /* result */
+  .overview { display: flex; align-items: center; gap: 4px; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 12.5px; flex-shrink: 0; overflow-x: auto; }
+  .overview .c { background: var(--fill-2); border-radius: 8px; padding: 4px 8px; white-space: nowrap; }
+  .overview .c b { display: block; font-size: 13px; }
+  .overview .a { color: var(--ink-3); font-size: 11px; white-space: nowrap; }
+  .tabs { display: flex; gap: 6px; padding: 8px 14px; border-bottom: 1px solid var(--line); overflow-x: auto; flex-shrink: 0; }
+  .tabs button { border: 1px solid var(--line); background: var(--paper); border-radius: 8px; padding: 4px 10px; font-size: 12.5px; white-space: nowrap; }
+  .tabs button.on { background: var(--dark); color: #fff; border-color: var(--dark); }
+  .map { height: 150px; border-radius: 12px; background: var(--fill-2); position: relative; margin-bottom: 10px; overflow: hidden; }
+  .map .tag { position: absolute; left: 8px; top: 8px; font-size: 11px; color: var(--ink-3); background: var(--paper); padding: 1px 6px; border-radius: 4px; }
+  .map .pin { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: var(--paper); border: 2px solid var(--dark); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .map .pin.hi { background: var(--dark); color: #fff; transform: scale(1.2); }
+  .map svg { position: absolute; inset: 0; }
+  .reason { font-size: 12.5px; color: var(--ink-2); border-left: 3px solid var(--line); padding: 4px 10px; margin-bottom: 10px; }
+  .reason b { color: var(--ink); }
+  .daytitle { font-weight: 700; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+  .card { display: flex; gap: 10px; border: 1px solid var(--line); border-radius: 12px; padding: 10px; background: var(--paper); cursor: pointer; position: relative; }
+  .card .im { width: 64px; height: 64px; background: var(--fill-2); border-radius: 8px; flex-shrink: 0; }
+  .card .tx { flex: 1; min-width: 0; }
+  .card .tx b { display: block; }
+  .card .tx .one { font-size: 12.5px; color: var(--ink-2); }
+  .card .tags { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+  .card .tags span { font-size: 11px; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; color: var(--ink-2); }
+  .card .num { position: absolute; left: -6px; top: -6px; width: 20px; height: 20px; border-radius: 50%; background: var(--dark); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .card .handle, .card .del { display: none; align-items: center; color: var(--ink-3); font-size: 16px; }
+  .editing .card .handle, .editing .card .del { display: flex; }
+  .editing .card { cursor: grab; border-style: dashed; }
+  .card.drag { opacity: .4; }
+  .card.over { outline: 2px solid var(--dark); }
+  .seg-t { font-size: 12px; color: var(--ink-3); padding: 6px 0 6px 30px; position: relative; }
+  .seg-t::before { content: ""; position: absolute; left: 14px; top: 0; bottom: 0; border-left: 2px dotted var(--line); }
+  .pool { margin-top: 14px; border: 2px dashed var(--line); border-radius: 12px; padding: 10px; min-height: 60px; display: none; }
+  .editing .pool { display: block; }
+  .pool .lbl { margin-top: 0; }
+  .pool .card { margin-bottom: 6px; }
+  .tips { margin-top: 14px; }
+  .tips details { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; margin-bottom: 6px; }
+  .tips summary { font-weight: 600; font-size: 13px; cursor: pointer; }
+  .aibar { border-top: 1px solid var(--line); padding: 8px 14px 12px; flex-shrink: 0; }
+  .aibar .chips { margin-bottom: 6px; }
+  .aibar .row { display: flex; gap: 6px; }
+  .aibar .field { padding: 8px 10px; }
+  .editbar { display: none; }
+  .editing .aibar { display: none; }
+  .editing + .editbar, .editbar.on { display: flex; }
+
+  .slot { font-size: 12px; font-weight: 700; color: var(--ink-2); margin: 12px 0 6px; display: flex; align-items: center; gap: 6px; }
+  .slot::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+  .slot small { font-weight: 400; color: var(--ink-3); }
+  .trans { border: 1.5px dashed var(--hi); border-radius: 12px; padding: 10px 12px; background: var(--fill); }
+  .trans.ok { border-style: solid; background: var(--paper); }
+  .trans b { display: block; font-size: 13.5px; }
+  .trans .tm { font-size: 12.5px; color: var(--ink-2); margin: 2px 0 6px; }
+  .trans .st { font-size: 11px; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; margin-left: 6px; font-weight: 400; color: var(--ink-2); }
+  .addday { width: 100%; margin-top: 10px; border: 1.5px dashed var(--line); background: var(--paper); border-radius: 12px; padding: 10px; color: var(--ink-2); font-weight: 600; }
+  .hotel { margin-top: 10px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+  .hotel u { cursor: pointer; color: var(--ink); }
+  .typeseg button { font-size: 12.5px; }
+
+  .meal { font-size: 12px; color: var(--ink-3); padding: 4px 0 4px 30px; position: relative; }
+  .meal::before { content: ""; position: absolute; left: 14px; top: 0; bottom: 0; border-left: 2px dotted var(--line); }
+  .blk { margin-top: 12px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font-size: 13px; }
+  .blk .bh { display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 4px; }
+  .blk .bh u { font-weight: 400; cursor: pointer; }
+  .blk .sg { color: var(--ink-2); font-size: 12.5px; }
+  .blk .mine { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .blk .cmp { font-size: 11.5px; border: 1px dashed var(--line); border-radius: 6px; padding: 1px 6px; color: var(--ink-3); }
+  .edbtn { border: 1px solid var(--dark); background: var(--paper); border-radius: 8px; padding: 3px 10px; font-size: 12.5px; font-weight: 600; }
+  .poolrow { display: flex; gap: 6px; align-items: center; margin: 4px 0 10px; font-size: 12px; }
+  .poolrow select { flex: 1; font: inherit; font-size: 12px; border: 1px solid var(--line); border-radius: 6px; padding: 3px; }
+
+  .tabs { gap: 0 !important; padding: 0 !important; }
+  .tabscroll { flex: 1; display: flex; gap: 6px; overflow-x: auto; padding: 8px 8px 8px 14px; }
+  .tabscroll { -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); }
+  .pooltab { flex-shrink: 0; align-self: center; margin-right: 10px; border: 1.5px solid var(--dark); background: var(--paper); border-radius: 999px; padding: 4px 10px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+  .pooltab i { font-style: normal; background: var(--dark); color: #fff; border-radius: 999px; min-width: 18px; height: 18px; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; padding: 0 4px; }
+  .pooltab.on { background: var(--dark); color: #fff; }
+  .pooltab.on i { background: #fff; color: var(--dark); }
+  .card.free { border-style: dotted; background: var(--fill); padding: 8px 10px; align-items: center; }
+  .card.free .im { width: 26px; height: 26px; border-radius: 50%; background: var(--paper); display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .card.free .num, .card.free .tags { display: none; }
+  .wx { font-size: 12.5px; color: var(--ink-2); margin: -2px 0 8px; }
+  .map .hpin { position: absolute; right: 18px; bottom: 14px; background: var(--paper); border: 2px solid var(--dark); border-radius: 6px; padding: 0 4px; font-size: 12px; }
+  .card.food { padding: 6px 10px; border-style: dashed; align-items: center; }
+  .card.food .im { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; background: var(--fill); }
+  .card.food .tx b { font-size: 13px; display: inline; }
+  .card.food .tx .one { display: inline; margin-left: 6px; font-size: 11.5px; }
+  .card.food .tags, .card.food .num { display: none; }
+  .mine .chip u { margin-left: 6px; font-size: 11.5px; cursor: pointer; }
+
+  .card.isnew { outline: 2px solid var(--dark); }
+  .card .newtag { position: absolute; right: 8px; top: -8px; background: var(--dark); color: #fff; font-size: 10.5px; border-radius: 4px; padding: 0 5px; }
+  .card .mv { display: none; align-items: center; color: var(--ink-3); font-size: 13px; }
+  .editing .card .mv { display: flex; }
+  .warn2 { border: 1.5px solid var(--dark); border-radius: 10px; padding: 8px 10px; font-size: 12.5px; margin-bottom: 10px; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+  .rc { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; margin-bottom: 8px; }
+  .rc.dis { opacity: .45; }
+  .rc .top { display: flex; gap: 8px; align-items: center; }
+  .rc .top b { flex: 1; }
+  .rc q { display: block; font-size: 12px; color: var(--ink-2); margin: 4px 0; quotes: "“" "”"; }
+  .rc .st2 { font-size: 11.5px; color: var(--ink-3); }
+  .rc select { width: 100%; margin-top: 4px; font: inherit; font-size: 12.5px; border: 1px solid var(--line); border-radius: 6px; padding: 3px; }
+  .movelist button { display: block; width: 100%; text-align: left; border: 1px solid var(--line); background: var(--paper); border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; }
+  .custom { display: inline-flex; gap: 4px; }
+  .custom input { border: 1px dashed var(--line); border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 13px; width: 110px; }
+
+  .xhsfab { position: absolute; right: 14px; bottom: 120px; z-index: 6; background: var(--dark); color: #fff; border: none; border-radius: 999px; padding: 9px 14px; font-weight: 700; font-size: 13px; box-shadow: 0 4px 14px rgba(0,0,0,.2); }
+  .sample .xhsfab, .editing .xhsfab { display: none; }
+  .up .imp { width: 100%; margin-top: 6px; }
+
+  .shots2 { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+  .shots2 .th { width: 64px; height: 84px; border-radius: 8px; background: var(--fill-2); position: relative; display: flex; align-items: flex-end; justify-content: center; font-size: 10.5px; color: var(--ink-3); padding-bottom: 4px; }
+  .shots2 .th b { position: absolute; right: -6px; top: -6px; width: 18px; height: 18px; border-radius: 50%; background: var(--dark); color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .fail { border: 1.5px dashed var(--dark); border-radius: 10px; padding: 10px 12px; font-size: 13px; }
+  .fail .opts2 { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+
+  .done-card { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; gap: 10px; align-items: center; margin-bottom: 16px; cursor: pointer; opacity: .85; }
+  .done-card .ph2 { width: 44px; height: 44px; border-radius: 8px; background: var(--fill-2); flex-shrink: 0; }
+  .done-tag { display: inline-block; font-size: 11px; border: 1px solid var(--dark); border-radius: 4px; padding: 0 5px; margin-left: 4px; }
+  .lnk { font-size: 12px; color: var(--ink-2); text-decoration: underline; cursor: pointer; background: none; border: none; padding: 0; }
+
+  /* sheets */
+  .mask { position: absolute; inset: 0; background: rgba(0,0,0,.35); display: none; z-index: 10; }
+  .mask.on { display: block; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: var(--paper); border-radius: 18px 18px 0 0; max-height: 86%; display: none; flex-direction: column; z-index: 11; }
+  .sheet.on { display: flex; }
+  .sheet .grab { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 8px auto 0; }
+  .sheet .sh { display: flex; align-items: center; padding: 8px 14px; font-weight: 700; font-size: 15px; }
+  .sheet .sh span { flex: 1; }
+  .sheet .sb { overflow-y: auto; padding: 0 14px 14px; }
+  .hero { height: 140px; background: var(--fill-2); border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; color: var(--ink-3); font-size: 12px; }
+  .kv { display: flex; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--fill); font-size: 13px; }
+  .kv span:first-child { color: var(--ink-3); width: 64px; flex-shrink: 0; }
+  .links { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .diff div { padding: 8px 10px; border-radius: 8px; margin-bottom: 6px; font-size: 13px; border: 1px solid var(--line); }
+  .diff .m { border-left: 4px solid var(--dark); }
+  .diff .r { text-decoration: line-through; color: var(--ink-3); }
+  .diff .a { border-left: 4px dashed var(--dark); }
+  .rec label { display: flex; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--fill); }
+  .rec select { margin-left: auto; font: inherit; font-size: 12px; border: 1px solid var(--line); border-radius: 6px; padding: 2px 4px; }
+  .upload { height: 70px; border: 2px dashed var(--line); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--ink-3); margin-top: 6px; }
+  .exp label { display: flex; gap: 10px; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 10px; margin-bottom: 8px; }
+  .exp label small { display: block; color: var(--ink-3); }
+  .toast { position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%); background: var(--dark); color: #fff; border-radius: 10px; padding: 8px 14px; font-size: 13px; display: none; z-index: 20; white-space: nowrap; }
+  .toast.on { display: flex; gap: 12px; align-items: center; }
+  .toast u { cursor: pointer; }
+  .menu { position: absolute; right: 12px; top: 48px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; display: none; z-index: 12; box-shadow: 0 4px 16px rgba(0,0,0,.1); }
+  .menu.on { display: block; }
+  .menu div { padding: 10px 18px; cursor: pointer; }
+  .menu div:hover { background: var(--fill); }
+
+  /* notes */
+  .notes { width: 340px; background: var(--paper); border-radius: 14px; padding: 18px; font-size: 13.5px; }
+  .notes h2 { font-size: 13px; color: var(--ink-3); letter-spacing: .08em; margin: 0 0 4px; }
+  .notes h3 { margin: 0 0 8px; font-size: 18px; }
+  .notes .desc { color: var(--ink-2); margin-bottom: 14px; }
+  .notes .sect { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 12px; }
+  .notes .sect b { display: block; margin-bottom: 6px; font-size: 12.5px; color: var(--ink-3); }
+  .notes .path button, .notes .states button { display: block; width: 100%; text-align: left; border: 1px solid var(--line); background: var(--paper); border-radius: 8px; padding: 6px 10px; margin-bottom: 5px; font-size: 13px; }
+  .notes .path button.cur { background: var(--dark); color: #fff; border-color: var(--dark); }
+  .notes .states button:hover, .notes .path button:hover { border-color: var(--dark); }
+  @media (max-width: 760px) { .notes { width: 100%; max-width: 375px; } }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <div class="phone">
+
+    <!-- P1 首页 -->
+    <section class="screen" id="s-list" data-title="P1 首页" data-desc="顶部约 1/3 为开始规划：氛围图 + 按钮，所有规划选项在 P2 设置；中部为即将出发的行程，营造期待感而非待办压力；新用户在中部看到示例行程；已结束的行程不在首页。">
+      <div class="bar"><span class="t" style="text-align:left">你好 👋</span><span class="icon" onclick="go('s-mine')">我</span></div>
+      <div class="body" id="listBody"></div>
+    </section>
+
+    <!-- 我的 / 全部行程 -->
+    <section class="screen" id="s-mine" data-title="我的 · 全部行程" data-desc="从首页右上角进入。包含规划中、已结束的行程；已有自己的行程后，示例行程归到这里，可删除。">
+      <div class="bar"><span class="icon" onclick="go('s-list')">‹</span><span class="t">我的</span><span class="icon" style="visibility:hidden"></span></div>
+      <div class="body" id="mineBody"></div>
+    </section>
+
+    <!-- P2-1 创建：基本信息 -->
+    <section class="screen" id="s-create1" data-title="P2 创建行程 · 1/2 基本信息" data-desc="所有规划选项都在 P2。城市、必去、不去均为输入后联想选择，只能选中真实存在的城市或地点；天数与日期双向联动。">
+      <div class="bar"><span class="icon" onclick="go('s-list')">‹</span><span class="t">新建行程 1/2</span><span class="icon" style="visibility:hidden"></span></div>
+      <div class="body">
+        <div class="lbl"><span class="req">目的地城市 *</span><span>可多个</span></div>
+        <div class="ta" id="taCity">
+          <div class="box2"><span class="chips" id="cityChips"></span><input placeholder="输入城市名" oninput="taInput('city',this.value)" onblur="taBlur('city')"></div>
+          <div class="sug"></div>
+        </div>
+        <div class="hint">≡ 拖动可调整顺序；不指定顺序则由 AI 建议</div>
+
+        <div class="lbl"><span class="req">天数 *</span></div>
+        <div class="stepper"><button class="btn sm" onclick="setDays(-1)">－</button><b id="days">7</b><span>天</span><button class="btn sm" onclick="setDays(1)">＋</button></div>
+
+        <div class="lbl"><span>具体日期</span><span>可选</span></div>
+        <div class="field datef" onclick="document.getElementById('cal').classList.toggle('on')"><span id="dateTxt">📅 选择日期（不填则按"第几天"安排）</span><span id="dateClr" style="display:none;color:var(--ink-3)" onclick="event.stopPropagation();clearDates()">清除</span></div>
+        <div class="cal" id="cal"></div>
+
+        <div class="lbl"><span>必去</span><span>可选</span></div>
+        <div class="ta" id="taMust">
+          <div class="box2"><span class="chips" id="mustChips"></span><input placeholder="搜索地点，如：万神殿" oninput="taInput('must',this.value)" onblur="taBlur('must')"></div>
+          <div class="sug"></div>
+        </div>
+        <div class="lbl"><span>不去</span><span>可选</span></div>
+        <div class="ta" id="taSkip">
+          <div class="box2"><span class="chips" id="skipChips"></span><input placeholder="搜索地点" oninput="taInput('skip',this.value)" onblur="taBlur('skip')"></div>
+          <div class="sug"></div>
+        </div>
+        <div class="hint">只能选择搜索结果中的地点（可在地图上定位）</div>
+
+        <div class="lbl"><span>已有预订</span><span>可选</span></div>
+        <textarea class="field" placeholder="一句话描述，如：第 3 天上午已订梵蒂冈博物馆"></textarea>
+      </div>
+      <div class="foot"><button class="btn pri full" id="next1" onclick="go('s-create2')">下一步</button></div>
+    </section>
+
+    <!-- P2-2 创建：偏好 -->
+    <section class="screen" id="s-create2" data-title="P2 创建行程 · 2/2 偏好" data-desc="软偏好一屏，可跳过。生成后在结果页仍可补充。">
+      <div class="bar"><span class="icon" onclick="go('s-create1')">‹</span><span class="t">新建行程 2/2</span><span class="icon" style="visibility:hidden"></span></div>
+      <div class="body">
+        <div class="lbl"><span>节奏</span></div>
+        <div class="seg" id="paceSeg"><button onclick="setPace(0)">紧凑</button><button class="on" onclick="setPace(1)">适中</button><button onclick="setPace(2)">宽松</button></div>
+        <div class="hint" id="paceDesc">每天留出午休或咖啡时间，不赶</div>
+
+        <div class="lbl"><span>兴趣</span><span>多选，可自定义</span></div>
+        <div class="chips" id="interest">
+          <button class="chip">历史古迹</button><button class="chip on">博物馆美术馆</button><button class="chip">自然风光</button><button class="chip">海滩海岛</button>
+          <button class="chip on">城市漫步</button><button class="chip">市集夜市</button><button class="chip">当地美食</button><button class="chip">咖啡甜品</button>
+          <button class="chip">拍照打卡</button><button class="chip">小众秘境</button><button class="chip">购物</button><button class="chip">演出与体验</button>
+          <span class="custom"><input id="customTag" placeholder="＋ 自定义" onkeydown="if(event.key==='Enter')addTag()"><button class="btn sm" onclick="addTag()">添加</button></span>
+        </div>
+
+        <div class="lbl"><span>同行人</span></div>
+        <div class="seg" data-single><button>独自</button><button class="on">朋友</button><button>情侣</button><button>家庭</button></div>
+        <div class="lbl"><span>其他想法</span><span>可选</span></div>
+        <textarea class="field" placeholder="比如：不想太早起床、想留一个下午逛街"></textarea>
+      </div>
+      <div class="foot"><button class="btn full" onclick="startGen()">跳过</button><button class="btn pri full" onclick="startGen()">生成行程</button></div>
+    </section>
+
+    <!-- P3 生成中 -->
+    <section class="screen" id="s-gen" data-title="P3 生成中" data-desc="文案面向用户，体现专业性而不暴露后台逻辑；阶段对应真实执行状态。用户可随时离开，行程在后台继续生成；只有点取消才会停止。">
+      <div class="bar"><span class="icon" style="visibility:hidden"></span><span class="t">为你规划中</span><span class="icon" style="visibility:hidden"></span></div>
+      <div class="body">
+        <div class="sum">
+          <div><span>目的地</span><span id="sumCity">罗马 → 佛罗伦萨 → 威尼斯</span></div>
+          <div><span>时间</span><span id="sumTime">7 天（未指定日期）</span></div>
+          <div><span>偏好</span><span>适中 · 艺术 · 城市漫步 · 朋友</span></div>
+        </div>
+        <ul class="stages" id="stages">
+          <li><span class="d"></span><span>理解你的偏好与旅行节奏<small>适中节奏 · 偏爱美术馆与城市漫步</small></span></li>
+          <li><span class="d"></span><span>为每座城市安排合适的天数<small>罗马 3 天 · 佛罗伦萨 2 天 · 威尼斯 2 天</small></span></li>
+          <li><span class="d"></span><span>挑选最适合你的地点<small>优先保留你的必去，补充贴合兴趣的去处</small></span></li>
+          <li><span class="d"></span><span>规划顺路的每日动线<small>同一区域的地点安排在同一天</small></span></li>
+          <li><span class="d"></span><span>核对开放时间与预约要求<small>已避开周一闭馆的乌菲兹美术馆</small></span></li>
+          <li><span class="d"></span><span>结合天气调整室内外安排<small>第 2 天有小雨，室内景点已调到下午</small></span></li>
+        </ul>
+        <div class="alert" id="genFail" style="display:none">
+          <b>生成失败</b>网络不稳定，已保留你填写的条件。
+          <div class="opts"><button class="btn pri" onclick="startGen()">重试</button></div>
+        </div>
+        <div class="alert" id="genConflict" style="display:none">
+          <b>条件有冲突</b>你选了 12 个必去地点，7 天、适中节奏排不下。
+          <div class="opts">
+            <button class="btn" onclick="startGen()">增加到 9 天</button>
+            <button class="btn" onclick="startGen()">改为紧凑节奏</button>
+            <button class="btn pri" onclick="startGen()">让 AI 取舍，放不下的放入待安排</button>
+          </div>
+        </div>
+        <div class="bgnote">规划需要一点时间。你可以先离开，行程会在后台继续生成，完成后在首页查看。</div>
+      </div>
+      <div class="foot"><button class="btn full" onclick="cancelGen()">取消规划</button><button class="btn pri full" onclick="leaveGen()">先去逛逛</button></div>
+    </section>
+
+    <!-- P4 行程结果 -->
+    <section class="screen" id="s-result" data-title="P4 行程结果" data-desc="核心页。顶部全程总览，日期切换，当天地图与地点卡片。点卡片看详情（P5）；底部可让 AI 调整；右上角菜单进入编辑、导出。">
+      <div class="bar"><span class="icon" onclick="saveBack()">‹</span><span class="t" id="rTitle">意大利三城 · 7 天</span><span class="icon" id="menuIcon" title="导出" onclick="openSheet('sh-export')">⤓</span></div>
+      <div class="banner">示例行程 · 只读</div>
+      <div class="menu" id="menu"></div>
+      <div class="overview" id="overview"></div>
+      <div class="tabs"><div class="tabscroll" id="tabs"></div><button class="pooltab" id="poolTab" onclick="cur='pool';renderTabs();renderDay()">📌 待安排</button></div>
+      <div class="body" id="dayBody"></div>
+      <div class="aibar" id="aibar">
+        <div class="row"><button class="btn sm" style="border-color:var(--line);white-space:nowrap" title="从小红书帖子添加" onclick="openImport(false)">📕 帖子</button><input class="field" placeholder="告诉 AI 怎么改，如：第 3 天轻松一点、多安排些美食" id="aiInput"><button class="btn pri sm" onclick="aiAsk()">发送</button></div>
+      </div>
+      <div class="foot samplebar"><button class="btn pri full" onclick="copySample()">以此为基础创建我的行程</button></div>
+      <div class="foot editbar" id="editbar"><span style="flex:1;font-size:12.5px;color:var(--ink-2)">拖动调整顺序；删除的地点会移入"待安排"</span><button class="btn pri" onclick="exitEdit()">完成</button></div>
+
+      <!-- sheets -->
+      <div class="mask" id="mask" onclick="closeSheets()"></div>
+
+      <div class="sheet" id="sh-place"><div class="grab"></div>
+        <div class="sh"><span id="pTitle">地点</span><span class="icon" onclick="closeSheets()">✕</span></div>
+        <div class="sb">
+          <div class="hero">图片</div>
+          <p id="pOne" style="margin:0 0 4px;font-weight:600"></p>
+          <p id="pWhy" class="hint" style="margin:0 0 10px"></p>
+          <div class="kv"><span>建议时长</span><span id="pDur"></span></div>
+          <div class="kv"><span>开放时间</span><span id="pOpen"></span></div>
+          <div class="kv"><span>预约</span><span id="pBook"></span></div>
+          <details style="margin-top:8px"><summary style="font-weight:600;cursor:pointer">怎么玩</summary><p class="hint">参观建议占位：推荐路线、必看、避开人流的时段……</p></details>
+          <div class="links"><span class="chip">官网</span><span class="chip">购票链接</span><span class="chip">小红书笔记</span><span class="chip">在地图中导航</span></div>
+          <div id="myInfo">
+          <div class="lbl" style="margin-top:14px"><span>我的信息</span><span>可选</span></div>
+          <input class="field" id="pTime" placeholder="已购票？填写场次时间，如 10:00（时间将固定）">
+          <textarea class="field" id="pNote" style="margin-top:6px" placeholder="备注，如取票方式、集合地点"></textarea>
+          <button class="btn pri sm" style="margin-top:6px" onclick="savePlaceInfo()">保存</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sheet" id="sh-add"><div class="grab"></div>
+        <div class="sh"><span id="addTitle">添加</span><span class="icon" onclick="closeSheets()">✕</span></div>
+        <div class="sb">
+          <div class="seg typeseg" id="addTypes" style="margin-bottom:8px">
+
+          </div>
+          <div class="hint" id="addTarget" style="margin-bottom:8px"></div>
+          <div id="addSearch">
+            <input class="field" id="addQ" placeholder="搜索名称">
+            <div class="rec" id="addRes" style="margin-top:6px"></div>
+          </div>
+          <div id="addPaste" style="display:none">
+            <textarea class="field" id="pasteTxt" style="height:84px">罗马三天私藏：万神殿旁边的 Sant'Eustachio 咖啡超好喝；特拉斯提弗列的 Da Enzo 要排队；博尔盖塞美术馆一定要提前约！顺便说一句，那不勒斯的 Sorbillo 披萨也绝了。</textarea>
+            <div class="upload" onclick="addShot()">＋ 或上传截图（可多张）</div>
+            <div class="shots2" id="shots"></div>
+            <button class="btn sm" style="margin-top:8px" onclick="recognize()">识别地点</button>
+            <div id="recog" style="display:none;margin-top:10px">
+              <div class="lbl"><span id="recogCount"></span><span>勾选要加入的，可改放入位置</span></div>
+              <div id="recogRes"></div>
+            </div>
+          </div>
+          <p class="hint" id="hotelHint" style="display:none">酒店会作为当晚起的住宿。同一住宿段添加多家，后续可比较交通。</p>
+          <button class="btn pri" id="addBtn" style="width:100%;margin-top:12px" onclick="confirmAdd()">加入</button>
+        </div>
+      </div>
+
+      <div class="sheet" id="sh-order"><div class="grab"></div>
+        <div class="sh"><span id="oTitle">添加我的订单</span><span class="icon" onclick="closeSheets()">✕</span></div>
+        <div class="sb">
+          <div class="seg" data-single style="margin-bottom:10px"><button>航班</button><button class="on">火车</button><button>大巴</button></div>
+          <div class="lbl"><span>车次 / 航班号</span></div><input class="field" id="oNo" placeholder="如：Frecciarossa 9512">
+          <div style="display:flex;gap:8px">
+            <div style="flex:1"><div class="lbl"><span>出发时间</span></div><input class="field" id="oDep" placeholder="09:15"></div>
+            <div style="flex:1"><div class="lbl"><span>到达时间</span></div><input class="field" id="oArr" placeholder="10:50"></div>
+          </div>
+          <p class="hint">也可以一句话描述，或上传订单截图识别（后续）。保存后，当天安排会按实际时间重新调整。</p>
+          <button class="btn pri" style="width:100%;margin-top:8px" onclick="saveOrder()">保存</button>
+        </div>
+      </div>
+
+      <div class="sheet" id="sh-move"><div class="grab"></div>
+        <div class="sh"><span id="mvTitle">移到…</span><span class="icon" onclick="closeSheets()">✕</span></div>
+        <div class="sb movelist" id="mvList"></div>
+      </div>
+
+      <div class="sheet" id="sh-diff"><div class="grab"></div>
+        <div class="sh"><span id="diffTitle">AI 建议的修改</span><span class="icon" onclick="closeSheets()">✕</span></div>
+        <div class="sb">
+          <div id="diffBody"></div>
+          <div style="display:flex;gap:8px;margin-top:10px"><button class="btn full" onclick="closeSheets()">放弃</button><button class="btn pri full" onclick="acceptDiff()">接受</button></div>
+        </div>
+      </div>
+
+      <div class="sheet" id="sh-export"><div class="grab"></div>
+        <div class="sh"><span>导出</span><span class="icon" onclick="closeSheets()">✕</span></div>
+        <div class="sb exp">
+          <label><input type="radio" name="ex" checked><span><b>长图</b><small>适合手机保存、转发</small></span></label>
+          <label><input type="radio" name="ex"><span><b>Word</b><small>可编辑，手机电脑都能打开</small></span></label>
+          <label><input type="radio" name="ex"><span><b>Markdown</b><small>可导入 Notion、飞书、Obsidian</small></span></label>
+          <div class="hero" style="height:110px">预览</div>
+          <button class="btn pri" style="width:100%" onclick="closeSheets();toast('已导出')">下载</button>
+        </div>
+      </div>
+
+      <div class="sheet" id="sh-stay"><div class="grab"></div>
+        <div class="sh"><span>住宿区域建议</span><span class="icon" onclick="closeSheets()">✕</span></div>
+        <div class="sb">
+          <div class="kv"><span>罗马</span><span>万神殿 / 纳沃纳一带：多数景点步行可达</span></div>
+          <div class="kv"><span>佛罗伦萨</span><span>圣母百花附近或靠近中央车站</span></div>
+          <div class="kv"><span>威尼斯</span><span>主岛，靠近水上巴士站</span></div>
+          <p class="hint">已订酒店？在"已有预订"中填写后，每天的路线会以酒店为起点。</p>
+        </div>
+      </div>
+
+      <div class="toast" id="toast"><span id="toastT"></span><u id="undo" onclick="undo()">撤回</u></div>
+    </section>
+
+  </div>
+
+  <!-- notes -->
+  <aside class="notes">
+    <h2>低保真原型 · 页面说明</h2>
+    <h3 id="nTitle"></h3>
+    <div class="desc" id="nDesc"></div>
+    <div class="sect"><b>案例路径（点击跳转）</b>
+      <div class="path" id="path">
+        <button data-go="s-list">1 · 首页（新用户）→ 开始规划</button>
+        <button data-go="s-create1">2 · 选城市与天数</button>
+        <button data-go="s-create2">3 · 填偏好</button>
+        <button data-go="s-gen">4 · 生成中</button>
+        <button data-go="s-result">5 · 看懂安排 / 点开地点 / 修改</button>
+        <button data-go="s-list" data-saved="1">6 · 回到首页，再次打开</button>
+      </div>
+    </div>
+    <div class="sect"><b>状态查看</b>
+      <div class="states">
+        <button onclick="listEmpty(true)">P1 · 新用户（含示例）</button>
+        <button onclick="listEmpty(false)">P1 · 已有行程</button>
+        <button onclick="showBgGen()">P1 · 后台生成中</button>
+        <button onclick="pastTrip()">P1 · 行程日期已过（自动归档）</button>
+        <button onclick="openSample()">示例行程（只读）</button>
+        <button onclick="go('s-mine')">我的 · 全部行程</button>
+        <button onclick="genState('fail')">P3 · 生成失败</button>
+        <button onclick="genState('conflict')">P3 · 条件冲突</button>
+        <button onclick="openItaly(2);aiAsk()">P6 · AI 修改待确认</button>
+        <button onclick="openItaly(1);enterEdit()">P6 · 编辑模式（拖拽 / 移到别天）</button>
+        <button onclick="openItaly(0);openImport(false);recognize()">P6 · 从帖子添加（AI 栏旁的小按钮）</button>
+        <button onclick="listEmpty(false);importToTrip('italy');recognize()">P1 · 从首页导入帖子到行程</button>
+        <button onclick="openItaly(0);openImport(false);addShot();addShot()">P6 · 截图已上传（缩略图）</button>
+        <button onclick="openItaly(0);openImport(false);addShot();recognizeFail()">P6 · 截图识别失败</button>
+        <button onclick="openItaly(2);openAdd(2,'place')">P6 · 添加到某一天</button>
+        <button onclick="openItaly(3);openOrder('r2f')">P4 · 添加城际交通订单</button>
+        <button onclick="openItaly(0);setWx('forecast')">P4 · 天气：已进入预报范围</button>
+        <button onclick="openItaly(0);setWx('climate')">P4 · 天气：日期较远（历史气候）</button>
+        <button onclick="openItaly(0);setWx('none')">P4 · 天气：未设日期</button>
+        <button onclick="openItaly(0);openSheet('sh-export')">P7 · 导出</button>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:12px">低保真：只验证信息与操作，不代表视觉风格。地图为占位，技术方案待验证。</p>
+  </aside>
+</div>
+
+<script>
+/* ================= 数据 =================
+   地点的时段（slot）是"生成结果"的一部分，由生成阶段根据开放时间、距离等决定；
+   界面只负责按生成结果分组展示，不在前端套用任何时段规则。 */
+const P = (n, one, why, dur, open, book, slot, kind) => ({ n, one, why, dur, open, book, slot, kind: kind || 'place' });
+function italyDays(){ return [
+  { city:'罗马', title:'抵达 · 老城散步', reason:'抵达日安排轻松：景点集中在老城，步行串联。', places:[
+    P('万神殿','两千年前的神庙，穹顶有天光','罗马保存最完整的古建筑，适合第一站','45 分钟','09:00–19:00','需预约（官网，约 5 欧）','下午'),
+    P('纳沃纳广场','巴洛克风格的长形广场','离万神殿步行 5 分钟，街头艺人多','30 分钟','全天','无需','下午'),
+    P('特雷维喷泉','许愿池，抛硬币的地方','夜晚灯光下人少一些','30 分钟','全天','无需','晚上') ], seg:['步行 6 分钟','步行 12 分钟'] },
+  { city:'罗马', title:'古罗马遗址', reason:'三处共用一张联票，地理相邻；遗址无遮阳，安排在上午到下午早些时候。', places:[
+    P('斗兽场','古罗马最大的圆形竞技场','罗马的标志，与广场同票','2 小时','08:30–19:15','必须预约，分时段','上午'),
+    P('古罗马广场','古罗马的政治与生活中心','与斗兽场相邻，联票包含','1.5 小时','08:30–19:15','联票包含','下午'),
+    P('帕拉蒂尼山','俯瞰广场的山丘遗址','视野好，可看全景','1 小时','08:30–19:15','联票包含','下午') ], seg:['步行 5 分钟','步行 8 分钟'] },
+  { city:'罗马', title:'梵蒂冈', reason:'梵蒂冈在城西，独立成一天，避免来回穿城。', places:[
+    P('梵蒂冈博物馆','西斯廷礼拜堂所在','艺术偏好：文艺复兴核心藏品','3 小时','周一至周六 08:00–20:00；周日闭馆','必须预约','上午'),
+    P('圣彼得大教堂','世界最大的教堂之一','与博物馆相连，可登穹顶','1.5 小时','07:00–19:00','免费，登顶收费','下午'),
+    P('圣天使堡','河边的圆形城堡','傍晚看台伯河','1 小时','09:00–19:30','可现场购票','下午') ], seg:['步行 10 分钟','步行 15 分钟'] },
+  { city:'佛罗伦萨', title:'换城 · 大教堂一带', reason:'上午换城，下午只安排老城中心，体力友好。', places:[
+    P('圣母百花大教堂','红色穹顶，佛罗伦萨地标','到达后步行 5 分钟即可到达','1.5 小时','10:15–15:45','登顶需预约','下午'),
+    P('领主广场','露天雕塑博物馆','与大教堂之间步行串联','40 分钟','全天','无需','下午'),
+    P('老桥','桥上开满金店的古桥','傍晚看阿诺河','30 分钟','全天','无需','晚上') ], seg:['步行 7 分钟','步行 5 分钟'] },
+  { city:'佛罗伦萨', title:'美术馆日', reason:'两馆分上下午，傍晚登高看日落。', places:[
+    P('乌菲兹美术馆','文艺复兴绘画重镇','艺术偏好：《维纳斯的诞生》','3 小时','周二至周日 08:15–18:30；周一闭馆','建议预约','上午'),
+    P('学院美术馆','米开朗基罗《大卫》原作','步行 15 分钟','1 小时','周二至周日 08:15–18:50','建议预约','下午'),
+    P('米开朗基罗广场','俯瞰全城的观景台','日落最佳','1 小时','全天','无需','晚上') ], seg:['步行 15 分钟','公交 20 分钟'] },
+  { city:'威尼斯', title:'换城 · 圣马可', reason:'上午换城，下午集中在圣马可区。', places:[
+    P('圣马可广场','威尼斯的中心广场','到达后第一站','40 分钟','全天','无需','下午'),
+    P('总督宫','威尼斯共和国的权力中心','可走过叹息桥','1.5 小时','09:00–18:00','建议预约','下午') ], seg:['步行 2 分钟'] },
+  { city:'威尼斯', title:'离岛 · 返程', reason:'上午离岛，下午留出时间前往机场。', places:[
+    P('布拉诺岛','彩色房子的小岛','拍照与城市漫步偏好','2.5 小时','全天','水上巴士','上午'),
+    P('里亚托桥','大运河上最古老的桥','返程前顺路','30 分钟','全天','无需','上午') ], seg:['水上巴士 45 分钟'] },
+]; }
+function trTemplate(){ return {
+  a:   { day:0, pos:'top',    icon:'✈️', title:'抵达罗马',                       guess:'抵达时间待确认 · 默认中午前后到达，下午开始游览', hdr:'抵达' },
+  r2f: { day:3, pos:'top',    icon:'🚄', title:'罗马 → 佛罗伦萨 · 高铁约 1.5 小时', guess:'时间待确认 · 已为上午预留换城时间', hdr:'上午 · 换城' },
+  f2v: { day:5, pos:'top',    icon:'🚄', title:'佛罗伦萨 → 威尼斯 · 高铁约 2 小时', guess:'时间待确认 · 已为上午预留换城时间', hdr:'上午 · 换城' },
+  d:   { day:6, pos:'bottom', icon:'✈️', title:'离开威尼斯',                     guess:'出发时间待确认 · 默认下午出发，上午只安排轻量游览', hdr:'下午 · 离开' },
+}; }
+const clone = o => JSON.parse(JSON.stringify(o));
+function mkTrip(title, days, tr){ return { title, days, tr, pool:[], hotel:{}, meals:{}, warn:{} }; }
+function newItaly(){ return mkTrip('意大利三城 · 7 天', italyDays(), trTemplate()); }
+function newSample(){ const t = trTemplate(); return mkTrip('罗马 3 天 · 古迹与城市漫步', italyDays().slice(0,3), { a: t.a }); }
+
+let TRIPS = { italy: null, rome: null }, activeId = 'italy', SAMPLE = newSample();
+let sampleMode = false, cur = 0, snapshot = null;
+let cities = ['罗马','佛罗伦萨','威尼斯'], days = 7;
+const T = () => sampleMode ? SAMPLE : TRIPS[activeId];
+const hasAnyTrip = () => !!(TRIPS.italy || TRIPS.rome);
+
+/* ================= 导航 ================= */
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on', s.id===id));
+  const s = document.getElementById(id);
+  document.getElementById('nTitle').textContent = s.dataset.title;
+  document.getElementById('nDesc').textContent = s.dataset.desc;
+  document.querySelectorAll('#path button').forEach(b=>b.classList.toggle('cur', b.dataset.go===id && (id!=='s-list' || !!b.dataset.saved === hasAnyTrip())));
+  closeSheets();
+  const r = document.getElementById('s-result');
+  r.classList.toggle('sample', id==='s-result' && sampleMode);
+  if(id!=='s-result'){ r.classList.remove('editing'); document.getElementById('editbar').classList.remove('on'); }
+  if(id==='s-result'){ document.getElementById('rTitle').textContent = sampleMode ? '罗马 3 天 · 示例' : T().title; renderOverview(); renderTabs(); renderDay(); }
+  if(id==='s-list') renderList();
+  if(id==='s-mine') renderMine();
+}
+document.querySelectorAll('#path button').forEach(b=>b.onclick=()=>{
+  if(b.dataset.saved){ if(!TRIPS.italy) TRIPS.italy = newItaly(); }
+  else if(b.dataset.go==='s-list'){ TRIPS = { italy:null, rome:null }; }
+  if(b.dataset.go==='s-gen') startGen(); else if(b.dataset.go==='s-result') openItaly(0); else go(b.dataset.go);
+});
+function openItaly(d){ if(!TRIPS.italy) TRIPS.italy = newItaly(); sampleMode=false; activeId='italy'; cur=d||0; go('s-result'); }
+function openTrip(id){ sampleMode=false; activeId=id; cur=0; go('s-result'); }
+
+/* ================= P1 首页 / 我的 ================= */
+function tripCard(id){
+  const t = TRIPS[id]; const cs = [...new Set(t.days.map(d=>d.city))];
+  const hl = t.days.slice(0,3).map(d=>'<div><i></i>'+d.places[0].n+'</div>').join('');
+  return '<div class="up" onclick="openTrip(\''+id+'\')"><div class="cover">封面 · '+cs[0]+'</div><div class="in">'
+    + '<b style="font-size:15px">'+t.title+'</b><div class="hint">'+cs.join(' → ')+' · 出发日期未定（设定日期后显示"还有 N 天出发"）</div>'
+    + '<div class="hl">'+hl+'</div><button class="btn" style="width:100%">查看行程</button>'
+    + '<button class="btn imp" onclick="event.stopPropagation();importToTrip(\''+id+'\')">📕 导入小红书帖子到此行程</button>'
+    + '<div style="text-align:right;margin-top:6px"><button class="lnk" onclick="event.stopPropagation();archiveTrip(\''+id+'\')">归档到已完成</button></div></div></div>';
+}
+/* 行程状态：规划中 / 已完成。已完成 = 用户手动归档，或用户设置的结束日期已过（自动归档） */
+let PAST = [];
+const isDone = t => t.archived || (t.end && t.end < Date.now());
+function activeIds(){ return ['italy','rome'].filter(id=>TRIPS[id] && !isDone(TRIPS[id])); }
+function doneList(){
+  const own = ['italy','rome'].filter(id=>TRIPS[id] && isDone(TRIPS[id])).map(id=>({ id, title:TRIPS[id].title, when: TRIPS[id].archived ? '手动归档' : '日期已过，自动归档', ts: TRIPS[id].doneAt || TRIPS[id].end || 0, manual: !!TRIPS[id].archived }));
+  return own.concat(PAST).sort((x,y)=>y.ts-x.ts);
+}
+function archiveTrip(id){ TRIPS[id].archived = true; TRIPS[id].doneAt = Date.now(); renderList(); if(document.getElementById('s-mine').classList.contains('on')) renderMine(); toast2('已归档到"已完成"'); }
+function restoreTrip(id){ TRIPS[id].archived = false; renderMine(); }
+function pastTrip(){ listEmpty(false); TRIPS.italy.end = Date.now() - DAY; go('s-list'); }
+function renderList(){
+  let h = '<div class="hero2"><b>下一趟，想去哪里？</b>'
+    + '<div class="heroArt">插画 / 氛围图区域<br>（高保真阶段做风格设计）</div>'
+    + '<button class="btn pri" style="width:100%" onclick="go(\'s-create1\')">开始规划</button></div>';
+  if(bgGen) h += '<div class="lbl"><span>正在规划</span></div><div class="genning"><span class="sp"></span><div><b>'+(cities.join(' · ')||'新行程')+' · '+days+' 天</b><div class="hint">正在后台生成，可以先做别的，完成后会出现在这里</div></div></div>';
+  const act = activeIds(), done = doneList();
+  if(act.length){
+    h += '<div class="lbl"><span>即将出发</span></div>';
+    act.forEach(id=>{ h += tripCard(id); });
+  } else if(!bgGen && !done.length){
+    h += '<div class="lbl"><span>还没有行程，先看看一份示例？</span></div>'
+      + '<div class="up" onclick="openSample()"><div class="cover">示例封面 · 罗马</div><div class="in">'
+      + '<b>罗马 3 天 · 古迹与城市漫步</b><span class="tagx">示例</span>'
+      + '<div class="hint">点开查看完整行程，可以此为基础创建自己的</div></div></div>';
+  }
+  if(done.length){
+    const d = done[0];
+    h += '<div class="lbl"><span>最近完成</span><span style="cursor:pointer" onclick="go(\'s-mine\')">全部 ›</span></div>'
+      + '<div class="done-card" onclick="'+(d.id?'openTrip(\''+d.id+'\')':'')+'"><div class="ph2"></div><div><b>'+d.title+'</b><span class="done-tag">已完成</span><div class="hint">'+d.when+'</div></div></div>';
+  }
+  h += '<div class="lbl"><span>更多方式</span></div>'
+    + '<div class="tiles"><div class="tile"><b>导入一篇攻略</b><small>整理成行程并查漏补缺 · T2</small></div>'
+    + '<div class="tile"><b>不知道去哪？</b><small>和 AI 聊聊目的地 · 低优先</small></div></div>';
+  document.getElementById('listBody').innerHTML = h;
+}
+function renderMine(){
+  let h = '<div class="lbl"><span>规划中</span></div>';
+  const act = activeIds();
+  if(!act.length) h += '<div class="hint" style="padding:6px 0">暂无</div>';
+  act.forEach(id=>{ h += '<div class="trip"><div class="info" style="display:flex;justify-content:space-between;align-items:center"><span onclick="openTrip(\''+id+'\')" style="cursor:pointer"><b>'+TRIPS[id].title+'</b><span class="hint">规划中</span></span><button class="lnk" onclick="archiveTrip(\''+id+'\')">归档</button></div></div>'; });
+  h += '<div class="lbl"><span>已完成</span></div>';
+  const done = doneList();
+  if(!done.length) h += '<div class="hint" style="padding:6px 0">暂无</div>';
+  done.forEach(d=>{ h += '<div class="trip"><div class="info" style="display:flex;justify-content:space-between;align-items:center"><span><b>'+d.title+'</b><span class="hint">'+d.when+'</span></span>'+(d.manual?'<button class="lnk" onclick="restoreTrip(\''+d.id+'\')">恢复</button>':'')+'</div></div>'; });
+  if(act.length || done.length) h += '<div class="lbl"><span>示例</span></div><div class="trip" onclick="openSample()"><div class="info"><b>罗马 3 天 · 古迹与城市漫步 <span class="tagx">示例</span></b><span class="hint">可删除</span></div></div>';
+  h += '<div class="lbl"><span>其他</span></div><div class="box" style="margin-bottom:6px">设置</div><div class="box">关于</div>';
+  document.getElementById('mineBody').innerHTML = h;
+}
+function toast2(t){ const el=document.getElementById('toast'); document.getElementById('toastT').textContent=t; document.getElementById('undo').style.display='none'; el.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('on'),2000); }
+function openSample(){ sampleMode=true; cur=0; go('s-result'); }
+/* 复制示例：生成一份独立的行程，之后与示例互不影响 */
+function copySample(){ TRIPS.rome = clone(newSample()); activeId='rome'; sampleMode=false; cur=0; go('s-result'); toast('已复制为你的行程，可自由修改', false); }
+function listEmpty(v){ TRIPS = { italy: v ? null : newItaly(), rome: null }; PAST = v ? [] : [{ title:'东京 5 天', when:'2026.03 · 日期已过，自动归档', ts:1 }]; bgGen=false; go('s-list'); }
+
+/* ================= P2 创建 ================= */
+const CITY_DB = [['罗马','意大利'],['佛罗伦萨','意大利'],['威尼斯','意大利'],['米兰','意大利'],['那不勒斯','意大利'],['巴黎','法国'],['尼斯','法国'],['东京','日本'],['京都','日本'],['大阪','日本'],['首尔','韩国'],['伦敦','英国'],['巴塞罗那','西班牙'],['马德里','西班牙']];
+const PLACE_DB = [['万神殿','景点','罗马'],['斗兽场','景点','罗马'],['梵蒂冈博物馆','博物馆','罗马'],['博尔盖塞美术馆','博物馆','罗马'],['西班牙广场','景点','罗马'],['特雷维喷泉','景点','罗马'],["Sant'Eustachio 咖啡馆",'餐饮','罗马'],['乌菲兹美术馆','博物馆','佛罗伦萨'],['学院美术馆','博物馆','佛罗伦萨'],['圣母百花大教堂','景点','佛罗伦萨'],['米开朗基罗广场','景点','佛罗伦萨'],['圣马可广场','景点','威尼斯'],['总督宫','景点','威尼斯'],['布拉诺岛','景点','威尼斯'],['里亚托桥','景点','威尼斯']];
+let must = [], skip = [];
+const TA = { city:'taCity', must:'taMust', skip:'taSkip' };
+function taInput(kind, v){
+  const box = document.querySelector('#'+TA[kind]+' .sug');
+  v = v.trim();
+  if(!v){ box.classList.remove('on'); return; }
+  let rows;
+  if(kind==='city'){
+    rows = CITY_DB.filter(c=>c[0].includes(v) || c[1].includes(v)).filter(c=>!cities.includes(c[0]))
+      .map(c=>'<div onmousedown="taPick(\'city\',\''+c[0]+'\')">'+c[0]+'<small>'+c[1]+' · 城市</small></div>');
+  } else {
+    rows = PLACE_DB.filter(p=>p[0].includes(v) && (cities.length===0 || cities.includes(p[2])))
+      .filter(p=>!must.includes(p[0]) && !skip.includes(p[0]))
+      .map(p=>'<div onmousedown="taPick(\''+kind+'\',&quot;'+p[0]+'&quot;)">'+p[0]+'<small>'+p[1]+' · '+p[2]+'</small></div>');
+  }
+  box.innerHTML = rows.length ? rows.join('') : '<div class="none">没有找到，换个名称试试</div>';
+  box.classList.add('on');
+}
+function taPick(kind, name){
+  (kind==='city'?cities:kind==='must'?must:skip).push(name);
+  const t = document.getElementById(TA[kind]); t.querySelector('input').value=''; t.querySelector('.sug').classList.remove('on');
+  renderCities();
+}
+function taBlur(kind){ setTimeout(()=>{ const t=document.getElementById(TA[kind]); t.querySelector('.sug').classList.remove('on'); t.querySelector('input').value=''; }, 150); }
+function rmItem(kind,i){ (kind==='city'?cities:kind==='must'?must:skip).splice(i,1); renderCities(); }
+function renderCities(){
+  document.getElementById('cityChips').innerHTML = cities.map((c,i)=>'<span class="chip city"><span class="h">≡</span>'+c+'<span onclick="rmItem(\'city\','+i+')">✕</span></span>').join('');
+  document.getElementById('mustChips').innerHTML = must.map((c,i)=>'<span class="chip city">'+c+'<span onclick="rmItem(\'must\','+i+')">✕</span></span>').join('');
+  document.getElementById('skipChips').innerHTML = skip.map((c,i)=>'<span class="chip city">'+c+'<span onclick="rmItem(\'skip\','+i+')">✕</span></span>').join('');
+  document.getElementById('next1').disabled = cities.length===0 || days<1;
+}
+/* 日期与天数联动：点首日→按天数自动选出结束日；再点晚于首日的一天→作为结束日，天数更新；区间完整后再点→重新开始；有日期时改天数→结束日随之变化 */
+let calY = 2027, calM = 2, dStart = null, dEnd = null, calPhase = 0;
+const DAY = 86400000;
+function fmt(d){ return (d.getMonth()+1)+'月'+d.getDate()+'日'; }
+function renderCal(){
+  const first = new Date(calY, calM, 1), n = new Date(calY, calM+1, 0).getDate(), off = first.getDay();
+  let g = '日一二三四五六'.split('').map(w=>'<span class="w">'+w+'</span>').join('');
+  for(let i=0;i<off;i++) g += '<span></span>';
+  for(let d=1; d<=n; d++){
+    const t = new Date(calY, calM, d).getTime();
+    let c = 'd';
+    if(dStart && t===dStart.getTime()) c += ' s';
+    else if(dEnd && t===dEnd.getTime()) c += ' e';
+    else if(dStart && dEnd && t>dStart.getTime() && t<dEnd.getTime()) c += ' in';
+    g += '<span class="'+c+'" onclick="pickDate('+calY+','+calM+','+d+')">'+d+'</span>';
+  }
+  document.getElementById('cal').innerHTML = '<div class="hd"><span class="icon" onclick="calNav(-1)">‹</span><span>'+calY+' 年 '+(calM+1)+' 月</span><span class="icon" onclick="calNav(1)">›</span></div><div class="grid">'+g+'</div>'
+    + '<div class="rule2">点首日：按天数自动选出结束日；再点另一天：改为结束日，天数随之更新</div>';
+  document.getElementById('dateTxt').textContent = dStart ? '📅 '+fmt(dStart)+' – '+fmt(dEnd)+' · '+days+' 天' : '📅 选择日期（不填则按"第几天"安排）';
+  document.getElementById('dateClr').style.display = dStart ? '' : 'none';
+  document.getElementById('sumTime').textContent = dStart ? days+' 天 · '+fmt(dStart)+' – '+fmt(dEnd) : days+' 天（未指定日期）';
+}
+function calNav(k){ calM += k; if(calM<0){calM=11;calY--;} if(calM>11){calM=0;calY++;} renderCal(); }
+function pickDate(y,m,d){
+  const t = new Date(y,m,d);
+  if(calPhase===1 && t.getTime()>dStart.getTime()){ dEnd = t; days = Math.round((dEnd-dStart)/DAY)+1; calPhase = 2; document.getElementById('days').textContent = days; }
+  else { dStart = t; dEnd = new Date(t.getTime()+(days-1)*DAY); calPhase = 1; }
+  wxMode='climate'; renderCal(); renderCities();
+}
+function clearDates(){ dStart=null; dEnd=null; calPhase=0; wxMode='none'; renderCal(); }
+function setDays(d){
+  days = Math.max(1,Math.min(30,days+d)); document.getElementById('days').textContent = days;
+  if(dStart) dEnd = new Date(dStart.getTime()+(days-1)*DAY);
+  renderCal(); renderCities();
+}
+document.querySelectorAll('[data-single]').forEach(g=>g.querySelectorAll('button').forEach(b=>b.onclick=()=>{ g.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); }));
+function bindChips(){ document.querySelectorAll('#interest .chip').forEach(b=>b.onclick=()=>b.classList.toggle('on')); }
+bindChips();
+function addTag(){
+  const inp = document.getElementById('customTag'), v = inp.value.trim(); if(!v) return;
+  const b = document.createElement('button'); b.className = 'chip on'; b.textContent = v;
+  inp.parentNode.before(b); inp.value=''; bindChips();
+}
+function setPace(i){
+  document.querySelectorAll('#paceSeg button').forEach((b,j)=>b.classList.toggle('on', j===i));
+  document.getElementById('paceDesc').textContent = ['安排较满、留白少，适合想多看一些的人','每天留出午休或咖啡时间，不赶','只定一两个重点，留大量自由时间'][i];
+}
+
+/* ================= P3 生成中 ================= */
+let genTimer, bgGen = false;
+function startGen(state){
+  go('s-gen');
+  document.getElementById('sumCity').textContent = cities.join(' → ') || '—';
+  document.getElementById('genFail').style.display='none';
+  document.getElementById('genConflict').style.display='none';
+  const li = document.querySelectorAll('#stages li'); let i = 0;
+  li.forEach(x=>x.className='');
+  clearInterval(genTimer);
+  const step = ()=>{
+    li.forEach((x,j)=>x.className = j<i ? 'done' : j===i ? 'doing' : '');
+    if(state && i===1){ clearInterval(genTimer); li[1].className=''; document.getElementById(state==='fail'?'genFail':'genConflict').style.display='block'; return; }
+    if(i>=li.length){ clearInterval(genTimer); setTimeout(()=>{
+      const onGen = document.getElementById('s-gen').classList.contains('on');
+      TRIPS.italy = newItaly(); TRIPS.italy.end = dEnd ? dEnd.getTime()+DAY : null; bgGen=false;
+      if(onGen){ openItaly(0); toast('已自动保存',false); } else if(document.getElementById('s-list').classList.contains('on')) renderList();
+    },400); }
+    i++;
+  };
+  step(); genTimer = setInterval(step, 900);
+}
+function genState(s){ startGen(s); }
+function leaveGen(){ bgGen = true; go('s-list'); }
+function cancelGen(){ clearInterval(genTimer); bgGen = false; go('s-create2'); }
+function showBgGen(){ startGen(); leaveGen(); }
+
+/* ================= P4 行程结果 ================= */
+const PINPOS = [[60,40],[150,90],[250,55],[300,110]];
+let wxMode = 'none';
+const WX = ['☀️ 晴 15–22°','🌧 小雨 14–19°','⛅ 多云 15–21°','☀️ 晴 16–23°','⛅ 多云 15–22°','🌧 阵雨 13–18°','☀️ 晴 14–20°'];
+function wxLine(i){
+  if(wxMode==='forecast') return '<div class="wx">'+WX[i]+(WX[i].indexOf('雨')>=0?' · 已把室内景点安排在下雨时段':'')+'</div>';
+  if(wxMode==='climate') return '<div class="wx">历史同期：3 月平均 9–17°C，偶有降雨 · 临近出发会更新为天气预报</div>';
+  return '';
+}
+function setWx(m){ wxMode = m; if(cur==='pool') cur=0; renderTabs(); renderDay(); }
+const STAY = { '罗马':'万神殿 / 纳沃纳一带：多数景点步行可达', '佛罗伦萨':'圣母百花附近或中央车站周边', '威尼斯':'主岛，靠近水上巴士站' };
+const FOOD = { '罗马':'培根蛋面、奶酪胡椒面、炸饭团；特拉斯提弗列区小馆集中', '佛罗伦萨':'T 骨牛排、牛肚包；中央市场一带选择多', '威尼斯':'墨鱼面、威尼斯小食 Cicchetti；卡纳雷吉欧区小酒馆' };
+
+function renderOverview(){
+  const t = T(), runs = [];
+  t.days.forEach((d,i)=>{ const r = runs[runs.length-1]; if(r && r.city===d.city) r.to = i; else runs.push({ city:d.city, from:i, to:i }); });
+  let h = '';
+  runs.forEach((r,k)=>{
+    h += '<span class="c"><b>'+r.city+'</b>D'+(r.from+1)+(r.to>r.from?'–'+(r.to+1):'')+'</span>';
+    if(k<runs.length-1){ const tk = Object.keys(t.tr).find(x=>t.tr[x].day===runs[k+1].from); const tr = tk && t.tr[tk];
+      h += '<span class="a">高铁 · '+(tr && tr.booked ? tr.dep+' ✓' : '未订')+' →</span>'; }
+  });
+  document.getElementById('overview').innerHTML = h;
+}
+function renderTabs(){
+  const t = T();
+  document.getElementById('tabs').innerHTML = t.days.map((d,i)=>'<button class="'+(i===cur?'on':'')+'" onclick="cur='+i+';renderTabs();renderDay()">'+(wxMode==='forecast'?WX[i].split(' ')[0]+' ':'')+'D'+(i+1)+' '+d.city+'</button>').join('');
+  const pt = document.getElementById('poolTab');
+  pt.style.display = sampleMode ? 'none' : '';
+  pt.classList.toggle('on', cur==='pool');
+  pt.innerHTML = '📌 待安排' + (t.pool.length ? '<i>'+t.pool.length+'</i>' : '');
+}
+function transHTML(k){
+  const tr = T().tr[k];
+  return '<div class="trans'+(tr.booked?' ok':'')+'"><b>'+tr.icon+' '+tr.title+'<span class="st">'+(tr.booked?'已订':'未订')+'</span></b>'
+    + '<div class="tm">'+(tr.booked ? tr.dep+' → '+tr.arr+' · '+tr.no : tr.guess)+'</div>'
+    + (sampleMode ? '' : '<button class="btn sm" onclick="openOrder(\''+k+'\')">'+(tr.booked?'修改订单':'＋ 添加我的订单')+'</button>') + '</div>';
+}
+function renderDay(){
+  if(cur==='pool'){ renderPool(); return; }
+  const t = T(), d = t.days[cur], ed = document.getElementById('s-result').classList.contains('editing');
+  const pins = d.places.map((p,i)=>'<span class="pin" id="pin'+i+'" style="left:'+PINPOS[i%4][0]+'px;top:'+PINPOS[i%4][1]+'px">'+(i+1)+'</span>').join('');
+  const line = d.places.map((p,i)=>(PINPOS[i%4][0]+11)+','+(PINPOS[i%4][1]+11)).join(' ');
+  let html = '<div class="map"><span class="tag">当日路线地图（占位）</span><svg width="100%" height="100%"><polyline points="'+line+'" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="4 4"/></svg>'+pins+hotelPin(d.city)+'</div>'
+    + '<div class="daytitle"><span>第 '+(cur+1)+' 天 · '+d.title+'</span>'+(sampleMode||ed?'':'<button class="edbtn" onclick="enterEdit()">✎ 调整</button>')+'</div>'
+    + wxLine(cur)
+    + (t.warn[cur] ? '<div class="warn2"><span>'+t.warn[cur]+'</span><button class="btn sm" onclick="aiAsk('+cur+')">让 AI 调整这一天</button></div>' : '')
+    + '<div class="reason"><b>为什么这样排：</b>'+d.reason+'</div><div id="cards">';
+  const keys = Object.keys(t.tr).filter(k=>t.tr[k].day===cur);
+  const topK = keys.find(k=>t.tr[k].pos==='top'), botK = keys.find(k=>t.tr[k].pos==='bottom');
+  const dependent = topK && !t.tr[topK].booked;
+  if(topK) html += '<div class="slot">'+t.tr[topK].hdr+'</div>' + transHTML(topK);
+  let last = topK ? t.tr[topK].hdr : '';
+  d.places.forEach((p,i)=>{
+    if(i>0) html += '<div class="seg-t">'+(d.seg[i-1]||'步行 · 计算中')+'</div>';
+    if(p.slot !== last){
+      if(p.slot==='下午' && last==='上午') html += '<div class="meal">🍽 午餐时间 · 见下方"吃什么"</div>';
+      if(p.slot==='晚上') html += '<div class="meal">🍽 晚餐时间 · 见下方"吃什么"</div>';
+      html += '<div class="slot">'+p.slot+(dependent && p.slot==='下午' ? ' <small>视交通时间调整</small>' : '')+'</div>';
+      last = p.slot;
+    }
+    html += cardHTML(p,i,false);
+  });
+  if(botK) html += '<div class="slot">'+t.tr[botK].hdr+'</div>' + transHTML(botK);
+  html += '</div>';
+  if(!sampleMode && !ed) html += '<button class="addday" onclick="openAdd('+cur+',\'place\')">＋ 添加到第 '+(cur+1)+' 天</button>';
+  const ms = t.meals[cur] || [];
+  html += '<div class="blk"><div class="bh"><span>🍽 吃什么</span>'+(sampleMode?'':'<u onclick="openAdd('+cur+',\'food\')">＋ 添加餐厅</u>')+'</div>'
+    + '<div class="sg">按你的口味推荐：'+FOOD[d.city]+'</div>'
+    + (ms.length ? '<div class="mine">'+ms.map((m,j)=>'<span class="chip">'+m+(sampleMode?'':'<u onclick="mealToLine('+cur+','+j+')">放进时间线</u>')+'</span>').join('')+(ms.length>1?'<span class="cmp">地图比较交通 · 后续</span>':'')+'</div>' : '') + '</div>';
+  if(cur < t.days.length-1) html += hotelBlock(d.city);
+  document.getElementById('dayBody').innerHTML = html;
+  bindDrag();
+}
+function cardHTML(p,i,inPool){
+  const mv = '<span class="mv" onclick="event.stopPropagation();openMove('+i+')">⇄</span>';
+  const del = '<span class="del" onclick="event.stopPropagation();rmPlace('+i+','+inPool+')">🗑</span>';
+  const nw = p.isNew ? '<span class="newtag">新加入</span>' : '';
+  if(p.kind==='free') return '<div class="card free'+(p.isNew?' isnew':'')+'" data-i="'+i+'" data-pool="0">'+nw+'<span class="handle">≡</span><div class="im">☕</div><div class="tx"><b>'+p.n+'</b> <span class="one">'+p.one+' · '+p.dur+'</span></div>'+mv+del+'</div>';
+  if(p.kind==='food') return '<div class="card food'+(p.isNew?' isnew':'')+'" data-i="'+i+'" data-pool="'+(inPool?1:0)+'" onclick="cardClick('+i+','+inPool+')">'+nw+'<span class="handle">≡</span><div class="im">🍽</div><div class="tx"><b>'+p.n+'</b><span class="one">'+p.one+'</span></div>'+(inPool?'':mv)+del+'</div>';
+  const tags = [p.dur];
+  if(p.time) tags.unshift('🔒 '+p.time+' 已购票'); else if(/预约/.test(p.book) && !/无需/.test(p.book)) tags.push(p.book.split('（')[0]);
+  if(p.note) tags.push('📝 有备注');
+  return '<div class="card'+(p.isNew?' isnew':'')+'" data-i="'+i+'" data-pool="'+(inPool?1:0)+'" onclick="cardClick('+i+','+inPool+')" onmouseenter="hl('+i+','+inPool+')" onmouseleave="hl(-1)">'+nw
+    + (inPool?'':'<span class="num">'+(i+1)+'</span>')+'<span class="handle">≡</span><div class="im"></div>'
+    + '<div class="tx"><b>'+p.n+'</b><span class="one">'+p.one+'</span><div class="tags">'+tags.map(x=>'<span>'+x+'</span>').join('')+'</div></div>'
+    + (inPool?'':mv)+del+'</div>';
+}
+function hl(i,inPool){ document.querySelectorAll('.map .pin').forEach((p,j)=>p.classList.toggle('hi', !inPool && j===i)); }
+
+/* 住宿：不计入路线与交通；以城市为单位，选定一次即沿用到该城每一晚 */
+function cityNights(city){ const ds = T().days, idx = ds.map((d,i)=>d.city===city?i:-1).filter(i=>i>=0 && i<ds.length-1); return idx.length ? '第 '+(idx[0]+1)+(idx.length>1?'–'+(idx[idx.length-1]+1):'')+' 晚' : ''; }
+function hotelPin(city){ const h = T().hotel[city]; return h && h.chosen ? '<span class="hpin">🏨</span>' : ''; }
+function hotelBlock(city){
+  const h = T().hotel[city] || { cands:[], chosen:null };
+  let b = '<div class="blk"><div class="bh"><span>🏨 住宿 · '+city+' '+cityNights(city)+'</span>'+(sampleMode?'':'<u onclick="openAdd('+cur+',\'hotel\')">＋ 添加</u>')+'</div>';
+  if(h.chosen){
+    b += '<div><b>✓ '+h.chosen+'</b> <span class="hint">已选定 · '+cityNights(city)+'自动沿用 · 已在地图标出</span></div>'
+      + '<div class="hint" style="margin-top:4px"><u onclick="unchoose(\''+city+'\')" style="cursor:pointer">更换</u> · <u style="cursor:pointer">这晚住别处</u></div>';
+  } else {
+    b += '<div class="sg">建议区域：'+STAY[city]+'</div>';
+    if(h.cands.length) b += '<div class="mine">'+h.cands.map(c=>'<span class="chip">'+c+(sampleMode?'':'<u onclick="choose(\''+city+'\',&quot;'+c+'&quot;)">选定</u>')+'</span>').join('')+(h.cands.length>1?'<span class="cmp">地图比较 · 后续</span>':'')+'</div>';
+  }
+  return b + '<div class="hint" style="margin-top:4px">住宿不计入每日路线，可随时回去休息</div></div>';
+}
+function choose(city, name){ T().hotel[city].chosen = name; renderDay(); toast('已选定，'+city+cityNights(city)+'都会沿用', false); }
+function unchoose(city){ T().hotel[city].chosen = null; renderDay(); }
+
+/* 待安排 */
+function renderPool(){
+  const t = T();
+  const opts = t.days.map((d,i)=>'<option value="'+i+'"'+(i===2?' selected':'')+'>'+(i===2?'AI 建议：':'')+'第 '+(i+1)+' 天 · '+d.city+'</option>').join('');
+  let h = '<div class="reason">还没排进某一天的地点和餐厅都在这里。添加时 AI 会建议放在哪天，也可以先放着。</div>'
+    + '<button class="addday" style="margin:0 0 12px" onclick="openAdd(null,\'place\')">＋ 添加景点 / 餐厅</button>';
+  if(!t.pool.length) h += '<div class="hint" style="text-align:center;padding:20px">暂时没有待安排的地点</div>';
+  t.pool.forEach((p,i)=>{ const o = typeof p.sug==='number' ? t.days.map((d,j)=>'<option value="'+j+'"'+(j===p.sug?' selected':'')+'>'+(j===p.sug?'AI 建议：':'')+'第 '+(j+1)+' 天 · '+d.city+'</option>').join('') : opts;
+    h += cardHTML(p,i,true) + '<div class="poolrow"><span>排入</span><select id="ps'+i+'">'+o+'</select><button class="btn sm" onclick="placeFromPool('+i+')">排入</button></div>'; });
+  document.getElementById('dayBody').innerHTML = h;
+}
+function insertToDay(di, item){
+  const d = T().days[di];
+  if(item.kind==='food' && !item.inLine){ (T().meals[di] = T().meals[di] || []).push(item.n); return; }
+  const last = d.places[d.places.length-1];
+  item.slot = item.slot || (last ? last.slot : '下午');
+  d.places.push(item); d.seg.push('步行 · 计算中');
+  if(d.places.length > 3) T().warn[di] = '第 '+(di+1)+' 天'+item.slot+'较满，可能需要取舍';
+}
+function placeFromPool(i){
+  const di = +document.getElementById('ps'+i).value;
+  const [item] = T().pool.splice(i,1); insertToDay(di, item);
+  renderTabs(); renderDay(); toast(item.kind==='food' ? '已放进第 '+(di+1)+' 天的"吃什么"，可再放进时间线' : '已排入第 '+(di+1)+' 天，可在当天拖动调整位置', false);
+}
+
+/* ================= 添加 =================
+   景点：加到某天（之后自由拖动）或进待安排（AI 建议排到哪天）
+   餐厅：进当天"吃什么"清单，可再放进时间线（窄卡片）；未定则进待安排
+   酒店：只挂在城市住宿上，不进待安排
+   自由时间：加到某天的一张小卡
+   粘贴帖子：识别 → 看原文依据与状态 → 勾选并选位置 → 加入后高亮，可撤回 */
+const ADD_RES = {
+  place: [['博尔盖塞美术馆','博物馆 · 罗马'],['真理之口','景点 · 罗马'],['皮蒂宫','博物馆 · 佛罗伦萨']],
+  food:  [['Roscioli','罗马菜 · 罗马'],['Da Enzo al 29','家常菜 · 罗马'],['Supplì 小吃摊','街头小吃 · 罗马']],
+  hotel: [['Hotel Artemide','近共和广场 · 罗马'],['Hotel Raphael','近纳沃纳广场 · 罗马'],['Hotel Lungarno','阿诺河畔 · 佛罗伦萨']],
+};
+const TYPE_NAME = { place:'景点', food:'餐厅', hotel:'酒店', paste:'粘贴帖子', free:'自由时间' };
+let addCtx = { day:null, type:'place' };
+function openAdd(day, type){ addCtx = { day, type }; renderAdd(); openSheet('sh-add'); }
+function setAddType(t){ addCtx.type = t; renderAdd(); }
+function dayOpts(sel){ return T().days.map((d,i)=>'<option value="'+i+'"'+(i===sel?' selected':'')+'>'+(i===sel?'AI 建议：':'')+'第 '+(i+1)+' 天 · '+d.city+'</option>').join('') + '<option value="pool"'+(sel==='pool'?' selected':'')+'>先放进待安排</option>'; }
+function renderAdd(){
+  const t = addCtx.type, day = addCtx.day;
+  const types = day===null ? ['place','food','paste'] : (t==='hotel' ? ['hotel'] : t==='food' ? ['food'] : ['place','food','free','paste']);
+  document.getElementById('addTypes').innerHTML = types.map(x=>'<button class="'+(x===t?'on':'')+'" onclick="setAddType(\''+x+'\')">'+TYPE_NAME[x]+'</button>').join('');
+  document.getElementById('addTypes').style.display = types.length>1 ? '' : 'none';
+  document.getElementById('addTitle').textContent = day===null ? '添加到待安排' : t==='hotel' ? '添加酒店 · '+T().days[day].city : t==='food' ? '添加餐厅 · 第 '+(day+1)+' 天' : '添加到第 '+(day+1)+' 天';
+  document.getElementById('addTarget').textContent =
+      t==='free' ? '加入一段空白时间，用来随便逛逛或休息，可拖动调整位置'
+    : t==='paste' ? '粘贴文字或上传截图，识别帖子里提到的地点'
+    : day===null ? 'AI 会建议放在哪天，也可以先留在待安排'
+    : t==='hotel' ? '可以添加多家候选，再选定一家'
+    : t==='food' ? '餐厅、小吃摊都可以，先放进当天的"吃什么"'
+    : '加到当天末尾，之后可以自由拖动调整位置';
+  document.getElementById('addSearch').style.display = (t==='paste'||t==='free') ? 'none' : '';
+  document.getElementById('addPaste').style.display = t==='paste' ? '' : 'none';
+  document.getElementById('recog').style.display = 'none';
+  document.getElementById('hotelHint').style.display = 'none';
+  document.getElementById('addQ').placeholder = '搜索'+TYPE_NAME[t]+'名称';
+  document.getElementById('addBtn').textContent = t==='paste' ? (addCtx.toPool ? '加入待安排' : '按所选位置加入') : day===null ? '按所选位置加入' : '加入';
+  shots = []; renderShots();
+  if(t!=='paste' && t!=='free'){
+    document.getElementById('addRes').innerHTML = ADD_RES[t].map((r,k)=>'<label><input type="checkbox" value="'+r[0]+'">'+r[0]+' <small class="hint">'+r[1]+'</small>'
+      + (day===null ? '<select data-k="'+k+'">'+dayOpts(k===0?'pool':2)+'</select>' : '')+'</label>').join('');
+  }
+}
+/* 帖子识别（模拟）：给出原文依据、状态与建议位置 */
+const RECOG = [
+  { n:"Sant'Eustachio 咖啡", kind:'food', q:'万神殿旁边的 Sant\'Eustachio 咖啡超好喝', sug:0, why:'离万神殿近' },
+  { n:'Da Enzo al 29', kind:'food', q:'特拉斯提弗列的 Da Enzo 要排队', sug:1, why:'晚餐 · 特拉斯提弗列' },
+  { n:'博尔盖塞美术馆', kind:'place', q:'博尔盖塞美术馆一定要提前约', sug:'pool', why:'需预约；这几天都较满', book:'必须预约' },
+  { n:'万神殿', kind:'place', q:'万神殿旁边', dup:'已在第 1 天' },
+  { n:'Sorbillo 披萨', kind:'food', q:'那不勒斯的 Sorbillo 披萨也绝了', out:'不在本次行程的城市' },
+];
+/* 小红书导入的两个入口：
+   1) 行程页悬浮按钮：识别后逐项建议放在哪天，可改
+   2) 首页行程卡片：目标行程已确定，识别后只需勾选，统一加入"待安排"（显示 AI 建议日期），完成后跳到待安排 */
+function openImport(toPool){ addCtx = { day:null, type:'paste', toPool }; renderAdd(); openSheet('sh-add');
+  document.getElementById('addTitle').textContent = toPool ? '导入小红书帖子 · '+T().title : '从小红书帖子添加';
+  document.getElementById('addTarget').textContent = toPool ? '识别出的地点会加入这个行程的"待安排"，之后再排进具体某天' : '粘贴文字或上传截图，识别帖子里提到的地点';
+  document.getElementById('addTypes').style.display = 'none'; }
+function importToTrip(id){ sampleMode=false; activeId=id; cur='pool'; go('s-result'); openImport(true); }
+/* 截图：上传后显示缩略图，可删除或重选；识别失败给出原因与出路（均为模拟） */
+let shots = [];
+function addShot(){ shots.push('截图 '+(shots.length+1)); renderShots(); }
+function renderShots(){
+  const el = document.getElementById('shots'); if(!el) return;
+  el.innerHTML = shots.map((x,i)=>'<div class="th">'+x+'<b onclick="shots.splice('+i+',1);renderShots()">✕</b></div>').join('')
+    + (shots.length ? '<span class="hint" style="align-self:center;cursor:pointer" onclick="shots=[];renderShots()">重选</span>' : '');
+}
+function recognizeFail(){
+  document.getElementById('recog').style.display = 'block';
+  document.getElementById('recogCount').textContent = '';
+  document.getElementById('recogRes').innerHTML = '<div class="fail"><b>没有识别到地点</b><div class="hint">可能是截图不清晰，或帖子里没有具体的地名。</div>'
+    + '<div class="opts2"><button class="btn sm" onclick="recognize()">重新识别</button><button class="btn sm" onclick="document.getElementById(\'pasteTxt\').focus()">改为粘贴文字</button><button class="btn sm" onclick="setAddType(\'place\')">手动搜索添加</button></div></div>';
+}
+function recognize(){
+  document.getElementById('recog').style.display = 'block';
+  document.getElementById('recogCount').textContent = '识别到 '+RECOG.length+' 个地点';
+  document.getElementById('recogRes').innerHTML = RECOG.map((r,k)=>{
+    const dis = r.dup || r.out;
+    const sel = dis || addCtx.toPool ? '' : (addCtx.day!==null ? '<select id="rs'+k+'">'+dayOpts(addCtx.day)+'</select>' : '<select id="rs'+k+'">'+dayOpts(r.sug)+'</select>');
+    return '<div class="rc'+(dis?' dis':'')+'"><div class="top"><input type="checkbox" id="rc'+k+'"'+(dis?' disabled':' checked')+'><b>'+r.n+'</b><span class="tagx">'+(r.kind==='food'?'餐厅':'景点')+'</span></div>'
+      + '<q>'+r.q+'</q><div class="st2">'+(dis ? dis : (r.book?'⚠️ '+r.book+' · ':'')+(addCtx.toPool?'将加入待安排 · AI 建议：':'建议：')+(r.sug==='pool'?'待安排':'第 '+(r.sug+1)+' 天')+'（'+r.why+'）')+'</div>'+sel+'</div>';
+  }).join('');
+}
+function confirmAdd(){
+  const t = addCtx.type, day = addCtx.day, trip = T();
+  if(t==='paste'){
+    if(document.getElementById('recog').style.display==='none'){ recognize(); return; }
+    snapshot = JSON.stringify(trip); const sum = {};
+    RECOG.forEach((r,k)=>{
+      const cb = document.getElementById('rc'+k); if(!cb || !cb.checked || cb.disabled) return;
+      const v = addCtx.toPool ? 'pool' : document.getElementById('rs'+k).value;
+      const item = r.kind==='food' ? { n:r.n, one:'餐厅 · 来自帖子', why:r.q, dur:'约 1 小时', open:'营业时间待补充', book:'—', kind:'food', isNew:true }
+                                   : { n:r.n, one:'来自帖子', why:r.q, dur:'约 2 小时', open:'开放时间待补充', book:r.book||'待确认', kind:'place', isNew:true };
+      if(addCtx.toPool && r.sug!=='pool') item.sug = r.sug;
+      if(v==='pool'){ trip.pool.push(item); sum['待安排'] = (sum['待安排']||0)+1; }
+      else { insertToDay(+v, item); const key='第 '+(+v+1)+' 天'; sum[key]=(sum[key]||0)+1; }
+    });
+    if(addCtx.toPool) cur = 'pool';
+    closeSheets(); renderTabs(); renderDay();
+    const total = Object.values(sum).reduce((a,b)=>a+b,0);
+    toast('已加入 '+total+' 个：'+Object.entries(sum).map(([k,v])=>k+' '+v+' 个').join('、'), true);
+    return;
+  }
+  const labels = [...document.querySelectorAll('#addRes label')].filter(l=>l.querySelector('input').checked);
+  if(t==='hotel'){
+    const city = T().days[day===null?0:day].city;
+    trip.hotel[city] = trip.hotel[city] || { cands:[], chosen:null };
+    labels.forEach(l=>{ const v=l.querySelector('input').value; trip.hotel[city].cands.includes(v) || trip.hotel[city].cands.push(v); });
+  } else if(t==='free'){
+    insertToDay(day, { n:'自由时间', one:'随便逛逛', dur:'约 2 小时', kind:'free' });
+  } else {
+    labels.forEach(l=>{
+      const v = l.querySelector('input').value;
+      const item = t==='food' ? { n:v, one:'餐厅', why:'你添加的', dur:'约 1 小时', open:'营业时间待补充', book:'—', kind:'food', isNew:true }
+                              : { n:v, one:'新添加的地点', why:'你添加的', dur:'约 1 小时', open:'开放时间待补充', book:'待确认', kind:'place', isNew:true };
+      const target = day!==null ? day : l.querySelector('select').value;
+      if(target==='pool') trip.pool.push(item); else insertToDay(+target, item);
+    });
+  }
+  closeSheets(); renderTabs(); renderDay(); toast(day===null ? '已按选择加入' : '已加入，可拖动调整位置', false);
+}
+function mealToLine(di, j){
+  const t = T(), name = t.meals[di].splice(j,1)[0], d = t.days[di];
+  const at = Math.max(0, d.places.findIndex(p=>p.slot!=='上午'));
+  const ref = d.places[at] || d.places[d.places.length-1];
+  d.places.splice(at, 0, { n:name, one:'餐厅', why:'你添加的', dur:'约 1 小时', open:'营业时间待补充', book:'—', kind:'food', slot: ref ? ref.slot : '下午' });
+  d.seg.splice(Math.max(0,at-1), 0, '步行 · 计算中');
+  renderDay(); toast('已放进时间线，可拖动调整位置', false);
+}
+
+/* ================= 城际交通订单 ================= */
+let orderKey = null;
+function openOrder(k){ orderKey = k; document.getElementById('oTitle').textContent = '添加订单 · '+T().tr[k].title; ['oNo','oDep','oArr'].forEach(id=>document.getElementById(id).value=''); openSheet('sh-order'); }
+/* 模拟"按实际时间重新安排"：早班到达后，原本放在下午的第一站提前到上午 */
+function saveOrder(){
+  const t = T(), tr = t.tr[orderKey];
+  tr.no = document.getElementById('oNo').value || (tr.icon==='✈️' ? 'CA 939' : 'Frecciarossa 9512');
+  tr.dep = document.getElementById('oDep').value || '07:30'; tr.arr = document.getElementById('oArr').value || '09:05';
+  tr.booked = true;
+  const d = t.days[tr.day]; let msg = '已按实际时间更新第 '+(tr.day+1)+' 天';
+  if(tr.pos==='top' && parseInt(tr.arr,10) < 11 && d.places.length && d.places[0].slot==='下午'){
+    d.places[0].slot = '上午';
+    tr.hdr = tr.day===0 ? '上午 · 抵达' : '上午 · 换城';
+    d.reason = '已按 '+tr.arr+' 到达调整：'+d.places[0].n+'提前到上午。' + d.reason;
+    msg += '：'+d.places[0].n+'提前到上午';
+  }
+  closeSheets(); renderOverview(); renderDay(); toast(msg, false);
+}
+
+/* ================= 地点详情、删除、移动 ================= */
+let placeRef = null;
+function cardClick(i,inPool){
+  if(document.getElementById('s-result').classList.contains('editing')) return;
+  const p = inPool ? T().pool[i] : T().days[cur].places[i];
+  document.getElementById('pTitle').textContent=p.n; document.getElementById('pOne').textContent=p.one;
+  document.getElementById('pWhy').textContent='推荐理由：'+p.why; document.getElementById('pDur').textContent=p.dur;
+  document.getElementById('pOpen').textContent=p.open; document.getElementById('pBook').textContent=p.book;
+  document.getElementById('pTime').value=p.time||''; document.getElementById('pNote').value=p.note||''; placeRef=p;
+  document.getElementById('myInfo').style.display = sampleMode ? 'none' : '';
+  openSheet('sh-place');
+}
+function savePlaceInfo(){ if(!placeRef || sampleMode) return; placeRef.time=document.getElementById('pTime').value.trim(); placeRef.note=document.getElementById('pNote').value.trim(); closeSheets(); renderDay(); toast(placeRef.time?'已固定时间，调整时会保留':'已保存', false); }
+function rmPlace(i,inPool){
+  const t = T();
+  if(inPool) t.pool.splice(i,1);
+  else { const [x] = t.days[cur].places.splice(i,1); t.days[cur].seg.splice(Math.max(0,i-1),1); if(x.kind!=='free') t.pool.push(x); }
+  renderTabs(); renderDay();
+}
+let mvIdx = null;
+function openMove(i){
+  mvIdx = i; const p = T().days[cur].places[i];
+  document.getElementById('mvTitle').textContent = '把"'+p.n+'"移到…';
+  document.getElementById('mvList').innerHTML = T().days.map((d,j)=>j===cur?'':'<button onclick="moveToDay('+j+')">第 '+(j+1)+' 天 · '+d.city+'</button>').join('') + '<button onclick="moveToDay(\'pool\')">📌 待安排</button>';
+  openSheet('sh-move');
+}
+function moveToDay(target){
+  const t = T(), [item] = t.days[cur].places.splice(mvIdx,1); t.days[cur].seg.splice(Math.max(0,mvIdx-1),1);
+  item.slot = null;
+  if(target==='pool') t.pool.push(item); else { item.inLine = true; insertToDay(target, item); }
+  closeSheets(); renderTabs(); renderDay(); toast(target==='pool' ? '已移入待安排' : '已移到第 '+(target+1)+' 天末尾，可在当天拖动调整', false);
+}
+let dragFrom=null;
+function bindDrag(){
+  const editing = document.getElementById('s-result').classList.contains('editing');
+  document.querySelectorAll('#cards .card').forEach(c=>{
+    c.draggable = editing;
+    c.ondragstart = ()=>{ dragFrom = +c.dataset.i; c.classList.add('drag'); };
+    c.ondragend = ()=>c.classList.remove('drag');
+    c.ondragover = e=>{ e.preventDefault(); c.classList.add('over'); };
+    c.ondragleave = ()=>c.classList.remove('over');
+    c.ondrop = e=>{ e.preventDefault(); c.classList.remove('over'); dragTo(+c.dataset.i); };
+  });
+}
+/* 拖动后，地点归入目标位置所在的时段（时段本身是生成结果，拖动由用户决定） */
+function dragTo(to){
+  if(dragFrom===null) return;
+  const d = T().days[cur], [item] = d.places.splice(dragFrom,1);
+  d.places.splice(to,0,item);
+  const nb = d.places[to+1] || d.places[to-1]; if(nb) item.slot = nb.slot;
+  d.seg.length = Math.max(0,d.places.length-1); for(let k=0;k<d.seg.length;k++) d.seg[k] = d.seg[k] || '步行 · 重新计算中';
+  dragFrom=null; renderDay();
+}
+function enterEdit(){ if(cur==='pool') cur=0; document.getElementById('s-result').classList.add('editing'); document.getElementById('editbar').classList.add('on'); renderDay(); }
+function exitEdit(){ document.getElementById('s-result').classList.remove('editing'); document.getElementById('editbar').classList.remove('on'); renderDay(); toast('已保存',false); }
+
+/* ================= AI 修改：先预览，接受后可撤回一步 ================= */
+/* 模拟 AI 对指定那一天给出修改：把最后一个可调整的景点移入待安排，并留出自由时间 */
+let diffDay = 2;
+function diffTarget(d){ for(let k=d.places.length-1;k>=0;k--){ const p=d.places[k]; if(p.kind==='place' && !p.time) return k; } return -1; }
+function aiAsk(di){
+  diffDay = typeof di==='number' ? di : 2; cur = diffDay; renderTabs(); renderDay();
+  const t = T(), d = t.days[diffDay], k = diffTarget(d), p = d.places[k];
+  document.getElementById('diffTitle').textContent = 'AI 建议的修改 · 第 '+(diffDay+1)+' 天';
+  document.getElementById('diffBody').innerHTML = (t.warn[diffDay] ? '<p class="hint" style="margin-top:0">'+t.warn[diffDay]+'。只修改第 '+(diffDay+1)+' 天，其余不变。</p>' : '<p class="hint" style="margin-top:0">你说："轻松一点"。只修改第 '+(diffDay+1)+' 天，其余不变。</p>')
+    + (p ? '<div class="diff"><div class="r">'+p.n+'</div><div class="m">'+p.n+' → 移入待安排</div><div class="a">'+p.slot+'留出约 1 小时自由时间</div></div>'
+         + '<p class="hint">理由：这一天'+p.slot+'已安排较满，去掉一站后节奏更从容；已购票的固定时间项目不会被移动。</p>'
+         : '<p class="hint">这一天没有可调整的项目。</p>');
+  openSheet('sh-diff');
+}
+function acceptDiff(){
+  const t = T(); snapshot = JSON.stringify(t);
+  const d = t.days[diffDay], k = diffTarget(d);
+  if(k>=0){ const [x] = d.places.splice(k,1); d.seg.splice(Math.max(0,k-1),1); t.pool.push(x);
+    d.places.splice(k,0,{ n:'自由时间', one:'随便逛逛', dur:'约 1 小时', kind:'free', slot:x.slot, isNew:true }); d.seg.splice(Math.max(0,k-1),0,'—'); }
+  delete t.warn[diffDay];
+  closeSheets(); renderTabs(); renderDay(); toast('已修改第 '+(diffDay+1)+' 天', true);
+}
+function undo(){
+  if(!snapshot) return;
+  const restored = JSON.parse(snapshot);
+  if(sampleMode) return; TRIPS[activeId] = restored; snapshot=null;
+  renderOverview(); renderTabs(); renderDay(); toast('已撤回',false);
+}
+
+/* ================= 通用 ================= */
+function openSheet(id){ document.getElementById('mask').classList.add('on'); document.querySelectorAll('.sheet').forEach(s=>s.classList.toggle('on', s.id===id)); }
+function closeSheets(){ document.getElementById('mask').classList.remove('on'); document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('on')); }
+function toggleMenu(){}
+function saveBack(){ sampleMode=false; go('s-list'); }
+let tt;
+function toast(t,withUndo){ const el=document.getElementById('toast'); document.getElementById('toastT').textContent=t; document.getElementById('undo').style.display=withUndo?'':'none'; el.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('on'), withUndo?5000:2200); }
+
+renderCities(); renderCal(); go('s-list');
+
+</script>
+</body>
+</html>

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>产品流程拆解 · 出境游规划助手</title>
+<style>
+  :root {
+    --bg: #f6f5f2; --paper: #ffffff; --ink: #1f2328; --ink-2: #57606a; --ink-3: #8c959f;
+    --line: #e4e2dd; --accent: #d9486b; --accent-soft: #fbe9ee; --ok: #1a7f37; --ok-soft: #e6f4ea;
+    --part: #9a6700; --part-soft: #fff4d6; --todo: #6e7781; --todo-soft: #eef0f2;
+    --blue: #0969da; --blue-soft: #ddf4ff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16171a; --paper: #1e2024; --ink: #e6e6e6; --ink-2: #a8b0b8; --ink-3: #6e7681;
+      --line: #30333a; --accent: #f2789a; --accent-soft: #3a2029; --ok: #56d364; --ok-soft: #1c3322;
+      --part: #e3b341; --part-soft: #3a3016; --todo: #9ea7b3; --todo-soft: #2a2d33;
+      --blue: #58a6ff; --blue-soft: #1a2a3d;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #16171a; --paper: #1e2024; --ink: #e6e6e6; --ink-2: #a8b0b8; --ink-3: #6e7681;
+    --line: #30333a; --accent: #f2789a; --accent-soft: #3a2029; --ok: #56d364; --ok-soft: #1c3322;
+    --part: #e3b341; --part-soft: #3a3016; --todo: #9ea7b3; --todo-soft: #2a2d33;
+    --blue: #58a6ff; --blue-soft: #1a2a3d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+    font-size: 15px; line-height: 1.75;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 40px 16px 80px; }
+  header { margin-bottom: 24px; }
+  .doc-type { font-size: 12px; letter-spacing: .12em; color: var(--accent); font-weight: 700; }
+  h1 { font-size: 28px; line-height: 1.3; margin: 6px 0 10px; }
+  .lead { color: var(--ink-2); font-size: 14px; margin: 0; }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; margin-bottom: 16px; }
+  h2 { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 19px; margin: 0 0 4px; }
+  h2 .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 26px; height: 26px; padding: 0 6px; border-radius: 13px;
+    background: var(--ink); color: var(--paper); font-size: 13px; font-weight: 700;
+  }
+  .goal { color: var(--ink-2); font-size: 14px; margin: 0 0 12px; }
+  h3 { font-size: 15.5px; margin: 18px 0 6px; }
+  p { margin: 0 0 8px; }
+  ul, ol { margin: 4px 0 8px; padding-left: 22px; }
+  li { margin: 3px 0; }
+  .muted { color: var(--ink-2); }
+  .small { font-size: 13px; }
+
+  .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .flow .s { background: var(--accent-soft); color: var(--accent); font-weight: 700; border-radius: 8px; padding: 6px 12px; }
+  .flow .s.opt { background: var(--todo-soft); color: var(--todo); border: 1px dashed var(--todo); }
+  .flow .a { color: var(--ink-3); }
+
+  .table-wrap { overflow-x: auto; margin: 6px 0 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { font-size: 12px; color: var(--ink-3); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { white-space: nowrap; }
+
+  .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 9px; border-radius: 999px; white-space: nowrap; }
+  .p0 { background: var(--accent-soft); color: var(--accent); }
+  .p1 { background: var(--part-soft); color: var(--part); }
+  .p2 { background: var(--todo-soft); color: var(--todo); }
+
+  .rule { border: 1px dashed var(--accent); background: var(--accent-soft); border-radius: 8px; padding: 10px 14px; margin: 10px 0 0; }
+  .rule b { color: var(--accent); }
+  .warn { border-left: 3px solid var(--part); background: var(--part-soft); border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 10px 0 0; font-size: 14px; }
+  .warn b { color: var(--part); }
+  .q { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 8px 0; }
+  .q b { color: var(--accent); }
+
+  @media (max-width: 720px) { .card { padding: 18px 16px; } h1 { font-size: 24px; } }
+  footer { margin-top: 28px; color: var(--ink-3); font-size: 12px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="doc-type">PRODUCT FLOW · DRAFT</div>
+    <h1>产品流程拆解</h1>
+    <p class="lead">草稿 v0.6 · 2026-10-03 · 框架由产品负责人提出，Claude 细化整理，并吸收 Codex 的评审意见 · 待讨论</p>
+  </header>
+
+  <!-- 总流程 -->
+  <section class="card">
+    <h2>🧭 总流程</h2>
+    <div class="flow" style="margin-top:8px">
+      <span class="s">① 输入与确认</span><span class="a">→</span>
+      <span class="s">② AI 规划中</span><span class="a">→</span>
+      <span class="s">③ 结果呈现</span><span class="a">→</span>
+      <span class="s">④ 调整与添加</span><span class="a">→</span>
+      <span class="s">⑤ 保存与导出</span>
+    </div>
+    <div class="rule"><b>总原则：</b>先把一次规划从输入到修改走通。沿这几段逐项确定输入、输出和交互，不急于增加功能。</div>
+  </section>
+
+  <!-- 1 -->
+  <section class="card">
+    <h2><span class="num">1</span>输入与确认</h2>
+    <p class="goal">目标：让 AI 知道这次要规划什么</p>
+
+    <div class="warn"><b>"信息重要"不等于"必须先填"。</b>偏好很重要，但用户可能还不了解目的地、暂时说不清喜欢什么，不应要求先答完整问卷。</div>
+
+    <h3>三类输入</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>类型</th><th>内容</th><th>处理原则</th></tr>
+        <tr>
+          <td><span class="pill p0">基础范围</span></td>
+          <td><b>目的地</b>：<b>下拉选择城市</b>（只能选已有项，可多选）；<b>时间</b>（天数，可选具体日期）</td>
+          <td>达到足以开始规划的程度即可。有日期才能避开闭馆日、判断季节。<br><span class="small muted">可选的前置入口："不知道要去哪里玩？先和 AI 聊一聊"，专门用于选目的地城市，预计使用较少</span></td>
+        </tr>
+        <tr>
+          <td><span class="pill p1">明确约束</span></td>
+          <td>必去 / 不去；已订机票（进出城市、到达时间）、酒店、门票场次；同行者的行动限制（老人、小孩、体力）；多城市的指定顺序</td>
+          <td><b>一旦提供就优先遵守</b>，不能埋在一般偏好里。已有预订<b>允许手动或一句话输入</b>（如"周二下午已订某馆"），不依赖订单识别</td>
+        </tr>
+        <tr>
+          <td><span class="pill p2">软偏好</span></td>
+          <td>
+            <ul>
+              <li>地点特征：历史、艺术、自然、城市漫步、购物、小众……</li>
+              <li>活动偏好：是否特别在意美食、拍照等</li>
+              <li>节奏：紧凑 / 适中 / 宽松</li>
+              <li>同行人类型、预算倾向</li>
+              <li>（还有更多可能的信息，待补充）</li>
+            </ul>
+          </td>
+          <td>可选填、自由表达，也可以<b>看过初稿后再补充</b></td>
+        </tr>
+      </table>
+    </div>
+
+    <h3>素材的两种情况</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>情况</th><th>用户想做什么</th><th>放在哪里</th></tr>
+        <tr>
+          <td><b>完整攻略</b></td>
+          <td>"帮我把它整理成结构化攻略，并查漏补缺"</td>
+          <td><b>独立工作流</b>（第二个入口）：识别 → 结构化成每日行程（尽量保留原结构）→ 查漏补缺（开放时间、预约、交通、遗漏）→ 进入 ③ 结果呈现、④ 调整。<span class="pill p1">T2 · 第二批</span></td>
+        </tr>
+        <tr>
+          <td><b>单个帖子</b></td>
+          <td>"把这个加进去" 或 "帮我确认这些信息是否属实"</td>
+          <td><b>旁支场景</b>，按时机放：
+            <ul>
+              <li>还没有行程时：识别出的地点作为必去或心愿，进入 ① 输入</li>
+              <li>已有行程时：在 ④ 调整中，加入行程（建议放在哪天）或核实信息</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>已经定了的</td>
+          <td>机票、酒店、门票订单</td>
+          <td>作为<b>明确约束</b>。订单截图识别以后再做；现阶段手动或一句话输入</td>
+        </tr>
+      </table>
+    </div>
+    <div class="flow" style="margin-top:10px">
+      <span class="s">入口 A：从零规划（①→②）</span><span class="a">↘</span>
+      <span class="s">③ 结果呈现 → ④ 调整 → ⑤ 保存与导出</span><span class="a">↙</span>
+      <span class="s opt">入口 B：导入完整攻略（识别→结构化→查漏补缺）· T2</span>
+    </div>
+    <p class="small muted">两个入口汇合到同一套结果与调整流程。</p>
+  </section>
+
+  <!-- 2 -->
+  <section class="card">
+    <h2><span class="num">2</span>AI 规划中</h2>
+    <p class="goal">目标：让用户知道正在发生什么。AI 内部过程暂不讨论，从呈现视角反推界面需要什么</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>界面要回答的问题</th><th>内容</th></tr>
+        <tr><td><b>按什么条件规划</b></td><td>让用户看见已确认的目的地、天数、约束与偏好</td></tr>
+        <tr><td><b>当前处于什么状态</b></td><td>正在生成 / 需要补充信息 / 遇到了冲突</td></tr>
+        <tr><td><b>接下来能做什么</b></td><td>等待、补充、取消，或失败后重试</td></tr>
+      </table>
+    </div>
+    <ul>
+      <li><b>等待无法避免</b>（几十秒到几分钟），过程需要可见</li>
+      <li><b>生成方式：一次性给出完整结果</b>（已定）。用户判断行程是否可行本身需要完整信息；渐进生成以后再议</li>
+      <li>结果附上<b>"为什么这样排"</b></li>
+    </ul>
+    <div class="warn"><b>进度要对应真实执行状态。</b>不展示冗长的思考文字，也不为了显得认真而编造研究步骤、百分比或预计时间。</div>
+  </section>
+
+  <!-- 3 -->
+  <section class="card">
+    <h2><span class="num">3</span>结果呈现</h2>
+    <p class="goal">目标：既能看懂整体，也能查具体信息。信息分层呈现，不全部平铺</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>层级</th><th>用户要回答的问题</th><th>主要内容</th></tr>
+        <tr><td><b>全程总览</b></td><td>这趟旅行整体怎么走？</td><td>城市顺序、各城天数、跨城交通、住宿区域建议</td></tr>
+        <tr><td><b>每日安排</b></td><td>今天去哪，怎么串起来？</td><td><b>景点选择与排序</b>（核心）、交通方式和预计耗时、安排理由、适量留白</td></tr>
+        <tr><td><b>地点详情</b></td><td>这里怎么玩，需要准备什么？</td><td>参观建议、建议时长、开放时间与闭馆日、预约与购票信息、相关链接</td></tr>
+        <tr><td><b>按需建议</b></td><td>吃什么、住哪里更合适？</td><td>沿途餐饮或区域建议、酒店选择依据</td></tr>
+      </table>
+    </div>
+    <div class="warn"><b>大交通和酒店不总是次要信息。</b>已订的航班、酒店位置会直接影响每天的安排；尚未预订时，可以先给区域和衔接建议。同一项信息，在不同场景下可能是<b>前置约束</b>，也可能是<b>结果建议</b>。</div>
+    <div class="rule"><b>💡 渐进式展示（产品负责人洞察）：</b>现有攻略的问题之一是展示不够渐进——看到陌生的景点名，用户会不信任，或仍要自己去查。每个地点应先给出"它是什么、为什么推荐"的一句话与图片，再按需展开详情与外部链接，降低陌生感和自行查询的成本。<span class="small muted">影响结果页与地点卡片的原型设计。</span></div>
+    <div class="warn"><b>地图的位置尚未决定。</b>它可能辅助全程总览、每日路线或地点选择，需结合页面设计确定，不预先归入某一层。</div>
+    <div class="warn"><b>只有天数、没有日期时</b>，保持"第几天"的安排，不擅自补一个确定日期。</div>
+  </section>
+
+  <!-- 4 -->
+  <section class="card">
+    <h2><span class="num">4</span>调整与添加</h2>
+    <p class="goal">目标：让初稿逐渐变成用户自己的计划</p>
+    <h3>按修改对象</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>对象</th><th>例子</th></tr>
+        <tr><td><b>整体条件</b></td><td>天数、日期、目的地、旅行节奏</td></tr>
+        <tr><td><b>某一天</b></td><td>轻松一点、换个主题、交换两天、改变顺序</td></tr>
+        <tr><td><b>具体项目</b></td><td>添加、删除、替换地点；移到别天；补备注或订票信息</td></tr>
+        <tr><td><b>新资料</b></td><td>新帖子、新想法、刚订好的机酒或门票</td></tr>
+      </table>
+    </div>
+    <h3>方式与机制</h3>
+    <ul>
+      <li><b>简单操作直接编辑</b>（拖拽、删除、添加）；<b>涉及取舍的调整交给 AI</b>（一句话描述）</li>
+      <li>添加来源：搜索地点、粘贴截图或帖子、从推荐中挑选</li>
+      <li><b>待安排区</b>：存放暂未排入某天的地点</li>
+    </ul>
+    <div class="rule"><b>不只是"怎么发出修改指令"，还要设计：</b>哪些内容要保留、改动影响哪里、用户如何看懂变化、能否撤回。</div>
+  </section>
+
+  <!-- 5 -->
+  <section class="card">
+    <h2><span class="num">5</span>保存与导出</h2>
+    <p class="goal">目标：让成果可以持续使用</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>能力</th><th>定位</th></tr>
+        <tr><td><b>保存、再次打开</b></td><td><span class="pill p0">基础能力</span> 既然支持持续修改，就必须具备</td></tr>
+        <tr><td>导出</td><td><span class="pill p1">首版</span> 以导出替代分享（格式待定）</td></tr>
+        <tr><td>分享链接</td><td><span class="pill p2">暂不做</span></td></tr>
+        <tr><td>旅途中的当日视图</td><td><span class="pill p2">不做</span> 本产品定位为规划工具</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- Q -->
+  <section class="card">
+    <h2>❓ 待决问题</h2>
+    <div class="q"><b>1.</b> 多城市的顺序：<span class="pill p0">已定</span> 用户明确指定就遵守，没指定就由 AI 建议，有冲突就说明。<br><b>目的地输入：</b><span class="pill p0">已定</span> 下拉选择城市；可选"先和 AI 聊一聊"入口（优先级低）</div>
+    <div class="q"><b>2.</b> 素材：<span class="pill p0">已定</span> 完整攻略走独立工作流（入口 B）；单个帖子为旁支场景，规划前进入输入、规划后进入调整（加入或核实）。<br>入口 B 优先级：<span class="pill p0">已定</span> T2，首版先跑通入口 A 主流程。</div>
+    <div class="q"><b>3.</b> 生成方式：<span class="pill p0">已定</span> 一次性完整结果；渐进生成以后再议。</div>
+    <div class="q"><b>4.</b> <span class="pill p0">已定</span> 保存与再次打开为基础能力；以导出替代分享；不做当日视图。<br><span class="small muted">待定：导出格式</span></div>
+    <div class="q"><b>6.</b> 地图放在哪一层、承担什么角色？结合页面设计决定。</div>
+    <div class="q"><b>5.</b> <span class="pill p0">已定</span> 偏好主要在生成前收集（满足定制、节省调用）；生成后也提供补充入口。<br><span class="small muted">待定：具体包含哪些项</span></div>
+  </section>
+
+  <footer>产品流程拆解 · 草稿 v0.6 · 出境游规划助手</footer>
+</div>
+</body>
+</html>

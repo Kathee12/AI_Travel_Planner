@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>首版范围与页面职责 · 出境游规划助手</title>
+<style>
+  :root {
+    --bg: #f6f5f2; --paper: #ffffff; --ink: #1f2328; --ink-2: #57606a; --ink-3: #8c959f;
+    --line: #e4e2dd; --accent: #d9486b; --accent-soft: #fbe9ee; --ok: #1a7f37; --ok-soft: #e6f4ea;
+    --part: #9a6700; --part-soft: #fff4d6; --todo: #6e7781; --todo-soft: #eef0f2;
+    --blue: #0969da; --blue-soft: #ddf4ff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16171a; --paper: #1e2024; --ink: #e6e6e6; --ink-2: #a8b0b8; --ink-3: #6e7681;
+      --line: #30333a; --accent: #f2789a; --accent-soft: #3a2029; --ok: #56d364; --ok-soft: #1c3322;
+      --part: #e3b341; --part-soft: #3a3016; --todo: #9ea7b3; --todo-soft: #2a2d33;
+      --blue: #58a6ff; --blue-soft: #1a2a3d;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #16171a; --paper: #1e2024; --ink: #e6e6e6; --ink-2: #a8b0b8; --ink-3: #6e7681;
+    --line: #30333a; --accent: #f2789a; --accent-soft: #3a2029; --ok: #56d364; --ok-soft: #1c3322;
+    --part: #e3b341; --part-soft: #3a3016; --todo: #9ea7b3; --todo-soft: #2a2d33;
+    --blue: #58a6ff; --blue-soft: #1a2a3d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+    font-size: 15px; line-height: 1.75;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 40px 16px 80px; }
+  header { margin-bottom: 24px; }
+  .doc-type { font-size: 12px; letter-spacing: .12em; color: var(--accent); font-weight: 700; }
+  h1 { font-size: 28px; line-height: 1.3; margin: 6px 0 10px; }
+  .lead { color: var(--ink-2); font-size: 14px; margin: 0; }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; margin-bottom: 16px; }
+  h2 { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 19px; margin: 0 0 12px; }
+  h2 .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 26px; height: 26px; padding: 0 6px; border-radius: 13px;
+    background: var(--ink); color: var(--paper); font-size: 13px; font-weight: 700;
+  }
+  h3 { font-size: 15.5px; margin: 16px 0 6px; }
+  p { margin: 0 0 8px; }
+  ul, ol { margin: 4px 0 6px; padding-left: 20px; }
+  li { margin: 2px 0; }
+  .muted { color: var(--ink-2); }
+  .small { font-size: 13px; }
+
+  .table-wrap { overflow-x: auto; margin: 6px 0 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { font-size: 12px; color: var(--ink-3); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { white-space: nowrap; font-weight: 600; }
+  .scope td:nth-child(2) { background: var(--ok-soft); }
+  .scope td:nth-child(3) { background: var(--todo-soft); color: var(--ink-2); }
+  .pages { min-width: 820px; }
+
+  .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+  .ok { background: var(--ok-soft); color: var(--ok); }
+  .todo { background: var(--todo-soft); color: var(--todo); }
+  .hyp { background: var(--part-soft); color: var(--part); }
+  .acc { background: var(--accent-soft); color: var(--accent); }
+
+  .path { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
+  .path .s { flex: 1 1 130px; background: var(--accent-soft); border-radius: 8px; padding: 8px 10px; font-size: 13.5px; }
+  .path .s b { display: block; color: var(--accent); font-size: 13px; }
+  .q { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 8px 0; }
+  .q b { color: var(--accent); }
+  .note { background: var(--todo-soft); border-radius: 8px; padding: 10px 14px; margin: 8px 0 0; font-size: 13.5px; color: var(--ink-2); }
+
+  @media (max-width: 720px) { .card { padding: 18px 16px; } h1 { font-size: 24px; } }
+  footer { margin-top: 28px; color: var(--ink-3); font-size: 12px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="doc-type">MVP SCOPE · DRAFT</div>
+    <h1>首版范围与页面职责</h1>
+    <p class="lead">草案 v0.5 · 2026-10-04 · 依据：<a href="产品流程拆解.html">产品流程拆解 v0.6</a> · <span class="pill hyp">建议</span> 为待确认项</p>
+  </header>
+
+  <!-- 1 -->
+  <section class="card">
+    <h2><span class="num">1</span>首版范围</h2>
+    <div class="table-wrap">
+      <table class="scope">
+        <tr><th>流程</th><th>✅ 首版必做</th><th>⏳ 后续再做</th></tr>
+        <tr>
+          <td>① 输入与确认</td>
+          <td>
+            <ul>
+              <li>城市下拉多选，可调整顺序（不指定则由 AI 建议）</li>
+              <li>天数；可选具体日期</li>
+              <li>必去 / 不去（搜索地点添加）</li>
+              <li>已有预订：一句话输入</li>
+              <li>偏好一屏，可跳过：节奏、兴趣标签、同行人</li>
+            </ul>
+          </td>
+          <td>"先和 AI 聊一聊"选目的地；订单截图识别；入口 B 导入完整攻略（T2）</td>
+        </tr>
+        <tr>
+          <td>② AI 规划中</td>
+          <td>
+            <ul>
+              <li>显示规划条件摘要</li>
+              <li>真实阶段状态</li>
+              <li>取消；失败后重试</li>
+              <li>条件冲突时提示（如天数不足以覆盖必去）</li>
+            </ul>
+          </td>
+          <td>生成过程中补充信息；渐进生成</td>
+        </tr>
+        <tr>
+          <td>③ 结果呈现</td>
+          <td>
+            <ul>
+              <li>全程总览：城市顺序、各城天数、换城日、住宿区域建议</li>
+              <li>每日安排：地点顺序、交通方式与预计耗时、安排理由</li>
+              <li><b>地点渐进展示</b>：一句话 + 图片 → 展开详情（参观建议、时长、开放时间、预约信息、外部链接）</li>
+              <li>按需建议：餐饮、住宿的简短建议</li>
+              <li><b>地图</b> <span class="pill ok">首版</span>：每日路线地图（编号标点 + 顺序连线），与地点卡片联动；技术方案待验证</li>
+            </ul>
+          </td>
+          <td>风格化地图；预算</td>
+        </tr>
+        <tr>
+          <td>④ 调整与添加</td>
+          <td>
+            <ul>
+              <li>直接编辑：删除；<b>自由拖拽</b>调整顺序、移到别天、移入或移出待安排区；拖拽后重新计算交通耗时</li>
+              <li>待安排区</li>
+              <li>搜索添加地点</li>
+              <li>AI 一句话调整（某一天或整体）：先展示改动，<b>接受或放弃</b>；接受后可<b>撤回一步</b></li>
+              <li><b>单帖导入</b> <span class="pill ok">首版</span>：在初版行程生成之后，从结果页的"添加"进入；粘贴文字或截图 → 识别地点 → AI 建议放在哪天，或放入待安排</li>
+            </ul>
+          </td>
+          <td>信息核实；多版本对比</td>
+        </tr>
+        <tr>
+          <td>⑤ 保存与导出</td>
+          <td>
+            <ul>
+              <li>自动保存</li>
+              <li>我的行程列表、再次打开</li>
+              <li><b>导出</b> <span class="pill ok">首版</span>：长图 + 可编辑文档（Word 与 Markdown，由同一份数据生成）</li>
+            </ul>
+          </td>
+          <td>更多导出格式</td>
+        </tr>
+      </table>
+    </div>
+    <p class="small muted"><b>首版不做：</b>账号体系（本地存储或匿名标识保存）、分享链接、当日视图、预订、多人协作。</p>
+  </section>
+
+  <!-- 同步 -->
+  <section class="card">
+    <h2>🔄 原型讨论后新增与调整（2026-10-08 同步）</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>流程</th><th>内容</th><th>状态</th></tr>
+        <tr><td>① 输入</td><td>兴趣改为 12 个平铺标签 + 用户自定义；节奏按"留白多少"说明</td><td><span class="pill ok">首版</span></td></tr>
+        <tr><td>② 生成中</td><td>可离开页面，行程在后台继续生成，完成后出现在首页；只有点"取消"才停止</td><td><span class="pill ok">首版</span></td></tr>
+        <tr><td>③ 结果</td><td><b>时段</b>（上午 / 下午 / 晚上）由生成阶段根据具体情况决定，界面只按结果分组展示</td><td><span class="pill ok">首版</span></td></tr>
+        <tr><td>③ 结果</td><td><b>城际交通</b>：无订单时为占位卡，按默认时间预留时段并标"时间待确认"；用户手动录入订单后，按实际时间重新安排当天（如早到则下午的景点提前）</td><td><span class="pill ok">首版</span> 订单截图识别为后续</td></tr>
+        <tr><td>③ 结果</td><td><b>天气</b>：无日期不显示；日期较远显示历史同期气候；进入预报范围显示逐日天气，生成时据此调整室内外安排</td><td><span class="pill hyp">展示首版；按预报重排待技术验证</span></td></tr>
+        <tr><td>③ 结果</td><td><b>住宿</b>：不计入每日路线与交通；以城市为单位，先给建议区域，可添加候选并选定，选定后该城每晚沿用，地图标出</td><td><span class="pill ok">首版</span></td></tr>
+        <tr><td>③ 结果</td><td><b>吃什么</b>：先按口味推荐当地美食，可添加具体餐厅或小吃；可"放进时间线"成为窄卡片</td><td><span class="pill ok">首版</span></td></tr>
+        <tr><td>④ 调整</td><td><b>添加两种入口</b>：某一天底部添加（加到末尾后自由拖动）；"待安排"标签添加（AI 建议放哪天，或先留着）。待安排固定在天数标签右侧</td><td><span class="pill ok">首版</span></td></tr>
+        <tr><td>④ 调整</td><td>编辑入口放在每天标题旁；编辑模式下可拖动排序，或"移到"别的天 / 待安排</td><td><span class="pill ok">首版</span></td></tr>
+        <tr><td>④ 调整</td><td><b>自由时间卡</b>；<b>固定时间项目</b>：已购票可填场次时间与备注</td><td><span class="pill ok">首版</span></td></tr>
+        <tr><td>④ 调整</td><td><b>小红书帖子导入</b>：粘贴文字或截图 → 识别地点，显示原文依据、状态（已在行程 / 不在本次城市）与建议位置 → 勾选并可改位置 → 景点插入对应天并标"新加入"，餐厅进"吃什么"，过满时提示并可让 AI 调整这一天 → 汇总提示，可撤回</td><td><span class="pill ok">首版</span> 链接解析不承诺<br><b>入口：</b>行程页 AI 输入栏旁的小按钮（逐项建议放哪天；使用率待观察，不做得太显眼）；首页行程卡片（勾选后统一进待安排）</td></tr>
+        <tr><td>⑤ 保存</td><td>示例行程只读；"以此为基础创建"会复制出一份独立行程</td><td><span class="pill ok">首版</span></td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="card">
+    <h2><span class="num">2</span>页面与职责</h2>
+    <div class="table-wrap">
+      <table class="pages">
+        <tr><th>页面</th><th>形式</th><th>职责</th><th>主要内容</th><th>关键状态</th></tr>
+        <tr>
+          <td>P1 我的行程</td><td>首页</td>
+          <td>找到已有行程，或开始新的</td>
+          <td>行程卡片列表（目的地、天数、更新时间）；新建按钮</td>
+          <td><span class="pill todo">空状态</span> 无记录时引导创建</td>
+        </tr>
+        <tr>
+          <td>P2 创建行程</td><td>页面，分两步</td>
+          <td>收集规划所需的条件</td>
+          <td>
+            第 1 步 基本信息：城市、天数 / 日期、必去 / 不去、已有预订<br>
+            第 2 步 偏好：节奏、兴趣、同行人（可跳过）
+          </td>
+          <td>必填未完成不可提交</td>
+        </tr>
+        <tr>
+          <td>P3 生成中</td><td>全屏状态</td>
+          <td>让用户知道在按什么条件规划、进行到哪</td>
+          <td>条件摘要；阶段状态；取消</td>
+          <td><span class="pill todo">进行中</span> <span class="pill todo">失败重试</span> <span class="pill todo">条件冲突</span></td>
+        </tr>
+        <tr>
+          <td>P4 行程结果</td><td>核心页面</td>
+          <td>看懂整体、查看每天、发起调整</td>
+          <td>
+            顶部：全程总览（城市 × 天）<br>
+            中部：日期切换 + 每日安排（地点卡片与交通段、安排理由）<br>
+            底部：AI 调整输入框；更多菜单（编辑、导出）
+          </td>
+          <td>桌面端为"行程 + 地图"双栏</td>
+        </tr>
+        <tr>
+          <td>P5 地点详情</td><td>底部弹层</td>
+          <td>降低陌生感，回答"这里怎么玩、要准备什么"</td>
+          <td>图片、一句话介绍与推荐理由 → 参观建议、时长、开放时间、预约信息、外部链接</td>
+          <td>信息缺失时标注"待确认"</td>
+        </tr>
+        <tr>
+          <td>P6 调整与添加</td><td>P4 的编辑状态 + 弹层</td>
+          <td>把初稿改成自己的计划</td>
+          <td>编辑模式（删除、拖动、移到别天）；待安排区；添加：搜索地点 / <b>粘贴帖子文字或截图识别</b></td>
+          <td><span class="pill acc">修改待确认</span> AI 调整后展示改动，接受或撤回</td>
+        </tr>
+        <tr>
+          <td>P7 导出</td><td>弹层</td>
+          <td>把行程带走</td>
+          <td>预览；下载</td>
+          <td>生成中 / 完成</td>
+        </tr>
+      </table>
+    </div>
+    <p class="note"><b>全局状态：</b>网络或生成失败的提示与重试；保存成功的轻提示。</p>
+  </section>
+
+  <!-- 3 -->
+  <section class="card">
+    <h2><span class="num">3</span>线框图要跑通的案例</h2>
+    <div class="path">
+      <div class="s"><b>1 · P1→P2</b>选城市（罗马、佛罗伦萨、威尼斯）和天数（7 天）</div>
+      <div class="s"><b>2 · P2</b>填偏好：适中、艺术、城市漫步</div>
+      <div class="s"><b>3 · P3</b>生成中，看到条件与状态</div>
+      <div class="s"><b>4 · P4 + P5</b>看懂总览与某一天，点开陌生地点</div>
+      <div class="s"><b>5 · P6</b>修改一个地点（删除或替换），确认改动</div>
+      <div class="s"><b>6 · P1</b>保存后回到列表，再次打开</div>
+    </div>
+  </section>
+
+  <!-- 亮点候选 -->
+  <section class="card">
+    <h2>💡 亮点候选：候选地点交通比较 <span class="pill hyp">放首版还是 T2，待技术验证后定</span></h2>
+    <p class="small muted">产品负责人提出（2026-10-08）。用户把自己从 OTA、小红书挑出的酒店或餐厅加入行程后，在地图上标出；同类候选达到 2 个及以上，自动进入比较模式。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th></th><th>酒店</th><th>餐厅</th></tr>
+        <tr><td>比较单位</td><td><b>住宿段</b>：默认等于整个城市（如罗马 D1–3）；同城换酒店时可拆分</td><td>某一天</td></tr>
+        <tr><td>比较内容</td><td colspan="2"><b>只比交通</b>：时间、距离、方式。价格、评分留给 OTA</td></tr>
+        <tr><td>衡量方式</td><td>住这里，该住宿段每天往返景点的平均耗时</td><td>加入当天路线需绕路多少，插在哪两站之间</td></tr>
+        <tr><td>录入方式</td><td colspan="2">搜索名称，地图上能找到即可</td></tr>
+        <tr><td>呈现形式</td><td colspan="2"><b>倾向 B + D</b>：横滑对比小卡 + 选中后地图显示连线（暂定，最后再做）</td></tr>
+      </table>
+    </div>
+    <p style="margin-top:10px"><b>呈现形式候选</b></p>
+    <ul>
+      <li><b>A. 结论先行</b>：一句话，如"住 A 每天往返平均少 15 分钟"，可展开明细</li>
+      <li><b>B. 横滑对比小卡</b>：每张卡一个候选，显示平均耗时与每天的耗时条</li>
+      <li><b>C. 对比表</b>：行为候选，列为每天或每个景点，格内为耗时，最优高亮</li>
+      <li><b>D. 地图连线</b>：选中某个候选，地图显示它到各景点的连线与耗时</li>
+    </ul>
+    <p class="note"><b>TODO：</b>依赖地图与路线服务。候选 × 景点的路线计算量较大，可先用直线距离估算，选定后再精确计算。</p>
+  </section>
+
+  <!-- 4 -->
+  <section class="card">
+    <h2><span class="num">4</span>待确认</h2>
+    <div class="q"><b>1.</b> 单帖导入：<span class="pill ok">已定</span> 放进首版，位置在初版行程生成之后的"添加"中。</div>
+    <div class="q"><b>2.</b> 地图：<span class="pill ok">已定</span> 首版必须有。<span class="pill hyp">TODO</span> 技术验证延后到原型之后：底图（MapLibre + 自托管 OSM 底图，大陆加载）、地点坐标准确率、路线耗时服务。</div>
+    <div class="q"><b>3.</b> 导出：<span class="pill ok">已定</span> 长图 + 可编辑文档（Word 与 Markdown）。</div>
+    <div class="q"><b>4.</b> 撤回：<span class="pill ok">已定</span> AI 改动先确认（接受 / 放弃），接受后可撤回一步。编辑以自由拖拽为主。</div>
+  </section>
+
+  <footer>首版范围与页面职责 · 草案 v0.5 · 出境游规划助手</footer>
+</div>
+</body>
+</html>

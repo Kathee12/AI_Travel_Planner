@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>技术可行性验证 · 出境游规划助手</title>
+<style>
+  :root {
+    --bg: #f6f5f2; --paper: #ffffff; --ink: #1f2328; --ink-2: #57606a; --ink-3: #8c959f;
+    --line: #e4e2dd; --accent: #d9486b; --accent-soft: #fbe9ee; --ok: #1a7f37; --ok-soft: #e6f4ea;
+    --part: #9a6700; --part-soft: #fff4d6; --todo: #6e7781; --todo-soft: #eef0f2;
+    --blue: #0969da; --blue-soft: #ddf4ff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16171a; --paper: #1e2024; --ink: #e6e6e6; --ink-2: #a8b0b8; --ink-3: #6e7681;
+      --line: #30333a; --accent: #f2789a; --accent-soft: #3a2029; --ok: #56d364; --ok-soft: #1c3322;
+      --part: #e3b341; --part-soft: #3a3016; --todo: #9ea7b3; --todo-soft: #2a2d33;
+      --blue: #58a6ff; --blue-soft: #1a2a3d;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #16171a; --paper: #1e2024; --ink: #e6e6e6; --ink-2: #a8b0b8; --ink-3: #6e7681;
+    --line: #30333a; --accent: #f2789a; --accent-soft: #3a2029; --ok: #56d364; --ok-soft: #1c3322;
+    --part: #e3b341; --part-soft: #3a3016; --todo: #9ea7b3; --todo-soft: #2a2d33;
+    --blue: #58a6ff; --blue-soft: #1a2a3d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+    font-size: 15px; line-height: 1.75;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 40px 16px 80px; }
+  header { margin-bottom: 24px; }
+  .doc-type { font-size: 12px; letter-spacing: .12em; color: var(--accent); font-weight: 700; }
+  h1 { font-size: 28px; line-height: 1.3; margin: 6px 0 10px; }
+  .lead { color: var(--ink-2); font-size: 14px; margin: 0; }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; margin-bottom: 16px; }
+  h2 { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 19px; margin: 0 0 12px; }
+  h2 .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 26px; height: 26px; padding: 0 6px; border-radius: 13px;
+    background: var(--ink); color: var(--paper); font-size: 13px; font-weight: 700;
+  }
+  h3 { font-size: 15.5px; margin: 16px 0 6px; }
+  p { margin: 0 0 8px; }
+  ul, ol { margin: 4px 0 6px; padding-left: 20px; }
+  li { margin: 2px 0; }
+  .muted { color: var(--ink-2); }
+  .small { font-size: 13px; }
+
+  .table-wrap { overflow-x: auto; margin: 6px 0 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { font-size: 12px; color: var(--ink-3); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { white-space: nowrap; font-weight: 600; }
+  .scope td:nth-child(2) { background: var(--ok-soft); }
+  .scope td:nth-child(3) { background: var(--todo-soft); color: var(--ink-2); }
+  .pages { min-width: 820px; }
+
+  .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+  .ok { background: var(--ok-soft); color: var(--ok); }
+  .todo { background: var(--todo-soft); color: var(--todo); }
+  .hyp { background: var(--part-soft); color: var(--part); }
+  .acc { background: var(--accent-soft); color: var(--accent); }
+
+  .path { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
+  .path .s { flex: 1 1 130px; background: var(--accent-soft); border-radius: 8px; padding: 8px 10px; font-size: 13.5px; }
+  .path .s b { display: block; color: var(--accent); font-size: 13px; }
+  .q { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 8px 0; }
+  .q b { color: var(--accent); }
+  .note { background: var(--todo-soft); border-radius: 8px; padding: 10px 14px; margin: 8px 0 0; font-size: 13.5px; color: var(--ink-2); }
+
+  @media (max-width: 720px) { .card { padding: 18px 16px; } h1 { font-size: 24px; } }
+  footer { margin-top: 28px; color: var(--ink-3); font-size: 12px; text-align: center; }
+  .fig { margin: 8px 0; display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+  .fig img { width: 260px; max-width: 100%; border-radius: 10px; border: 1px solid var(--line); }
+  .fig .cap { flex: 1 1 280px; font-size: 14px; }
+  .arch { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; margin: 8px 0; }
+  .arch .s { flex: 1 1 150px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 13.5px; }
+  .arch .s b { display: block; font-size: 13px; color: var(--accent); }
+  .arch .ar { align-self: center; color: var(--ink-3); }
+  .mods { min-width: 860px; }
+  .mods td:nth-child(3) { font-size: 13.5px; }
+  code { font-size: 12.5px; background: var(--todo-soft); padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="doc-type">TECH FEASIBILITY · SPIKE</div>
+    <h1>技术可行性验证</h1>
+    <p class="lead">v0.2 · 2026-10-09（按 Codex 审核修订）· 目标：中国大陆可用、可部署、之后能让大陆用户直接打开页面使用 · 对照：<a href="首版范围与页面职责.html">首版范围与页面职责</a> · <a href="低保真原型.html">低保真原型</a></p>
+  </header>
+
+  <section class="card">
+    <h2><span class="num">0</span>结论</h2>
+    <p><b>技术方向可行，可以继续做；但还不能说"所有板块都已验证"。</b>准确的状态是：<b>地图和外部数据源已经实测，其余板块完成了方案筛选，核心的行程生成和实际部署还没验证。</b>架构思路：大陆用户的浏览器只访问我们自己的域名，海外数据（地图、地点、天气、百科图片）由后端获取并缓存，大模型用国内厂商的接口。</p>
+    <ul>
+      <li><span class="pill ok">已实测，有原始记录</span> 罗马城区底图自托管渲染；沿街道的步行路线（步行 / 驾车对照确认）；地点坐标、中文名、营业时间；天气预报与历史同期气候；中文维基摘要。请求地址和原始响应存在 <code>tech-spike/raw/</code>。</li>
+      <li><span class="pill hyp">方案已选，未验证</span> <b>行程生成（最关键）</b>、截图识别、后台任务的恢复与重试、导出（尤其地图能否导出进长图）、地点库建库流程。大模型接口目前只确认了服务在线（返回 401），<b>不代表调用和输出可用</b>。</li>
+      <li><span class="pill hyp">需部署后验证</span> 大陆网络下的访问速度、完整生成流程、在微信里打开的表现。当前网络经美国出口，无法代测。</li>
+      <li><span class="pill acc">需要调整设计</span> ① 建"城市地点库"，但它不能保证坐标和营业时间都可靠，需要整理核心景点；② 公共交通只能估算；③ 餐厅没有评分；④ 微信里不能下载文件。详见第 3 节。</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">1</span>整体架构</h2>
+    <div class="arch">
+      <div class="s"><b>手机 / 电脑浏览器</b>网页（H5），不做 App 和小程序</div>
+      <div class="ar">→</div>
+      <div class="s"><b>自己的域名</b>前端页面、JS、字体、地图底图文件，全部自托管，不引用任何境外 CDN</div>
+      <div class="ar">→</div>
+      <div class="s"><b>后端（香港服务器）</b>生成任务、地点库、缓存；代理访问海外数据</div>
+      <div class="ar">→</div>
+      <div class="s"><b>外部服务</b>国内大模型（DeepSeek / 通义 等）· OSM 地点与路线 · Open-Meteo 天气 · 维基百科</div>
+    </div>
+    <p class="muted small">香港服务器同时能访问国内大模型和海外数据源，且不需要 ICP 备案，适合作品阶段。代价是大陆访问速度不如国内服务器，需要上线后实测（第 4、6 节）。</p>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">2</span>逐模块验证</h2>
+    <div class="table-wrap"><table class="mods">
+      <tr><th>模块</th><th>方案</th><th>实测结果</th><th>大陆可用性</th><th>状态</th></tr>
+      <tr><td>地图底图</td><td>MapLibre GL + Protomaps 底图，按城市切出 PMTiles 文件，放在自己的存储里</td><td>罗马城区（约 13×11 km，0–15 级）= <b>12 MB</b>，299 个切片；本地渲染成功，有中文城市名、地点标记（见第 5 节截图）。浏览器用 Range 请求只取看到的部分</td><td>文件自托管，不依赖境外服务。存储必须支持 Range 请求，跨域时要配 CORS。字体和图标也要自托管；中文字形可直接用手机系统字体</td><td><span class="pill ok">已验证</span></td></tr>
+      <tr><td>地点搜索 / 坐标</td><td>为每个支持的城市预先建"地点库"：用 Overpass 或 OSM 数据文件批量提取（Nominatim 公共接口不允许批量抓取和自动补全），用户搜索查自己的库</td><td>Nominatim 单次查询：万神殿、Sant'Eustachio 咖啡馆坐标准确；Photon 对斗兽场只返回同名街道。Overpass 一次提取罗马 3,437 个景点 / 餐厅 / 咖啡馆</td><td>后端调用，前端不直连</td><td><span class="pill ok">数据源已验证</span> <span class="pill hyp">建库流程未验证</span></td></tr>
+      <tr><td>地点详情</td><td>OSM 标签（营业时间、是否收费）+ Wikidata（中文名、配图）+ 中文维基摘要</td><td>万神殿返回：中文名"万神殿"、营业时间 <code>Mo-Sa 08:30-19:15; Su 09:00-17:45</code>、收费、Wikidata 编号及配图文件名。罗马地点库中仅 25% 有营业时间，18% 有 Wikidata，55 个自带中文名 → 不足以直接据此安排行程，见第 3 节</td><td>维基百科和维基图片在大陆无法直接访问 → 后端获取，图片转存到自己的存储</td><td><span class="pill ok">已验证</span></td></tr>
+      <tr><td>市内路线与耗时</td><td>OSRM / OpenRouteService（步行、驾车）</td><td>FOSSGIS 公共服务器（routed-foot）：万神殿→特雷维喷泉 679 m / 9 分钟，平均 4.5 km/h；对照组同一起终点驾车 2.9 km（单行道绕行）、21 km/h → 确认是步行配置。路线形状沿街道（第 5 节）</td><td>后端调用。公共服务器不能用于正式产品，需换成 OpenRouteService 免费额度（需 key）或自建，<b>换了之后要重新测</b></td><td><span class="pill ok">公共服务器已验证</span> <span class="pill hyp">公共交通见第 3 节</span></td></tr>
+      <tr><td>天气</td><td>Open-Meteo：近期（约 16 天内）用预报；远期用<b>历史天气接口汇总往年同期</b>，只作参考，不据此判断哪天下雨；备选和风天气（国内）</td><td>罗马 3 天预报正常。历史同期：2021–2025 年 3 月共 155 天，平均最高 16.7°C、最低 6.8°C，32% 的天数降水 ≥1 mm。<b>修正</b>：v0.1 写的"2027 年 3 月历史气候"实际调用的是气候模型对未来的模拟，不是历史数据，产品不使用</td><td>后端调用；和风天气接口可连通（需 key）</td><td><span class="pill ok">已验证</span></td></tr>
+      <tr><td>行程生成（大模型）</td><td>DeepSeek / 通义千问 / 智谱 / 豆包，都兼容 OpenAI 接口，可切换。输出结构化 JSON</td><td>只确认四家服务在线（无 key 返回 401）。调用、结构化输出、质量、耗时、费用<b>均未测</b></td><td>国内厂商，大陆可用</td><td><span class="pill hyp">需 key 实测</span></td></tr>
+      <tr><td>小红书截图识别</td><td>视觉模型（通义千问 VL 等）读截图 → 抽地点名 → 匹配地点库</td><td>未测</td><td>国内厂商，大陆可用</td><td><span class="pill hyp">需 key 实测</span></td></tr>
+      <tr><td>后台生成</td><td>后端任务队列 + 前端轮询进度；离开页面不中断</td><td>方案成熟，未验证：刷新或关掉页面后能否恢复进度、失败重试、结果保存</td><td>—</td><td><span class="pill hyp">待验证</span></td></tr>
+      <tr><td>导出</td><td>长图：前端截图库（html-to-image 等）；Word：docx 库前端生成；Markdown：复制到剪贴板</td><td>相关库可从国内 npm 镜像安装，打包进自己的 JS，运行不依赖外部服务。未验证：长图里能否包含地图（WebGL 画布截图容易变空白）、手机上长图会不会生成失败</td><td>微信内置浏览器不能下载文件 → 见第 3 节</td><td><span class="pill hyp">待验证</span> <span class="pill acc">需调整</span></td></tr>
+      <tr><td>数据保存</td><td>首版不做登录，行程存在浏览器本地（IndexedDB）</td><td>—</td><td>避免手机号登录带来的实名、短信、隐私合规成本</td><td><span class="pill ok">建议</span></td></tr>
+      <tr><td>城际交通 / 订单</td><td>不接票务系统；AI 给出车次类型与耗时估算，用户手动录入已订车次，跳转官方售票网站</td><td>—</td><td>—</td><td><span class="pill ok">与原型一致</span></td></tr>
+      <tr><td>导航</td><td>跳转 Google 地图 / Apple 地图（用户在国外时使用）</td><td>—</td><td>只是外链，不影响国内打开页面</td><td><span class="pill ok">可行</span></td></tr>
+    </table></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">3</span>需要调整的设计</h2>
+    <h3>① 建"城市地点库"，但库本身也要整理</h3>
+    <p>Nominatim 公共服务限制每秒 1 次请求，也不允许批量抓取。改为：每个支持的城市用 Overpass 或 OSM 数据文件批量提取景点和餐厅，补齐中文名（Wikidata 中文名 + 大模型翻译，结果缓存），存成自己的地点库。生成时让大模型从库里选，可以<b>减少编造地点、加快查询</b>，但不能保证都对：</p>
+    <ul>
+      <li><b>仍会出错的地方</b>：同名地点匹配错；景区的中心点和入口不在一处；数据过时（关门、搬迁）。</li>
+      <li><b>营业时间缺得多</b>：罗马只有约 25% 的地点有营业时间。首版先<b>人工整理每个城市的核心景点</b>（几十个）：别名、入口坐标、营业时间、来源和核对日期。其余地点的营业时间显示"未知"，不让大模型补成确定的事实。</li>
+      <li><b>库外地点</b>：截图或搜索中出现库里没有的地点时，给出候选让用户确认，或先放进待安排并标为"待核实"。</li>
+      <li>首版是<b>"支持的城市"列表</b>，不是任意城市，与原型里的城市下拉框一致。</li>
+    </ul>
+    <h3>② 公共交通：只给估算</h3>
+    <p>OSRM / OpenRouteService 只算步行、驾车、骑行。精确的公交地铁路线需要各城市的公交时刻数据和单独的路线服务，首版做不了。地点之间的交通显示为"步行约 9 分钟"或"地铁/公交约 15–20 分钟（估算）"，并提供"在地图中导航"外链。<b>对"候选地点交通比较"的影响</b>：步行、打车距离可以算准，公交只能估算。</p>
+    <h3>③ 餐厅没有评分</h3>
+    <p>OSM 有餐厅的名字、位置、营业时间，但没有评分和评论（Google 地点数据在大陆不可用）。"吃什么"推荐依靠大模型的知识 + 地点库核对餐厅是否存在；详情页不显示评分，显示"来自 OSM 的营业时间，出行前请再确认"。</p>
+    <h3>④ 微信里的导出</h3>
+    <p>微信内置浏览器不能下载文件。长图：生成后在页面上全屏显示，提示"长按保存图片"。Word：提示"在浏览器中打开后下载"。Markdown：直接复制到剪贴板。</p>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">4</span>部署方案与成本</h2>
+    <div class="table-wrap"><table>
+      <tr><th>阶段</th><th>做法</th><th>优点</th><th>代价</th></tr>
+      <tr><td>阶段一（推荐先做）</td><td>香港轻量服务器 + 自己的域名 + HTTPS；页面、地图、图片都放在这台服务器（或香港对象存储）</td><td>不用备案，几天就能上线；能同时访问国内大模型和海外数据</td><td>大陆访问速度和稳定性要实测；微信里打开可能出现"非微信官方网页"提示</td></tr>
+      <tr><td>阶段二（如有需要）</td><td>大陆服务器 + 已备案域名放前端和地图文件；后端仍在香港</td><td>大陆访问最快最稳</td><td>ICP 备案通常需要 1–3 周；个人备案网站能否提供 AI 交互功能有不确定性</td></tr>
+    </table></div>
+    <p><b>大致费用（估算，以下单时为准）</b>：香港轻量服务器每月几十元；域名每年几十元；每个城市的地图约 10–30 MB，存储费用可以忽略；大模型按用量计费，单次行程生成预计几分钱到几毛钱，需用 key 实测。</p>
+    <p class="muted small">不建议用 Vercel、Cloudflare Pages、GitHub Pages：它们的默认域名在大陆经常无法访问或很慢。</p>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">5</span>地图实测</h2>
+    <div class="fig">
+      <div><img src="tech-spike/map-rome.png" alt="罗马城区自托管底图渲染结果"><br><img src="tech-spike/map-rome-route.png" alt="沿街道的步行路线" style="margin-top:8px"></div>
+      <div class="cap">
+        <p><b>做法</b>：从 Protomaps 全球底图（约 139 GB，2026-10-08 版）中只切出罗马城区，得到 12 MB 的单个文件；用本地服务器提供，MapLibre 渲染，叠加 3 个编号地点。第一张图的虚线是三点直接相连，只验证了路线图层能显示；第二张图才是沿街道的实际路线。</p>
+        <p><b>看到的</b>：街道、绿地、河流清晰；"罗马"、"万神殿"、"特雷维喷泉"等有中文名，其余多为意大利语原名 — 所以我们自己的地点标记和卡片要用地点库里的中文名，不能依赖底图。</p>
+        <p><b>沿街道的路线（追加验证）</b>：路线服务除了距离和时间，还会返回整条路线的形状。万神殿→特雷维喷泉（679 m，9 分钟）、特雷维喷泉→斗兽场（1.8 km，24 分钟）两段都沿街道画出，见第二张图（复现：<code>tech-spike/map-rome/index-route.html</code>）。驾车同理。<b>公共交通</b>：OSM 里有罗马的地铁 A/B 线和有轨电车线路的形状（共 25 条），可以按"走到车站 → 沿地铁线 → 走到目的地"画出大致形状，但换乘和时刻仍是估算。</p>
+        <p><b>上线前要改</b>：测试页的字体和图标文件还指向 github.io（大陆不稳定），正式版要改成自托管。复现步骤见 <code>tech-spike/map-rome/README.md</code>。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">6</span>合规</h2>
+    <p>以下是<b>待核对项</b>，不代表已经合规。</p>
+    <ul>
+      <li><b>生成式 AI</b>：调用已备案的国内大模型，不等于我们的服务自动合规。需核对：向公众开放时的登记要求、AI 生成内容标识、用户输入的内容安全。作品阶段建议用邀请码或小范围分享。</li>
+      <li><b>地图</b>：只展示境外城市可以避开国内地图的审图问题，但是否完全不涉及还需核对。</li>
+      <li><b>OSM 数据许可（ODbL）</b>：不只是署名。我们的地点库由 OSM 加工而来，属于衍生数据库，若公开分发要按 ODbL 共享；在产品中使用需署名。具体边界需对照 OSM 许可说明核对。</li>
+      <li><b>其他数据</b>：维基百科与 Wikimedia 图片（各自的 CC 许可，需署名作者）、Open-Meteo（非商用免费，需注明来源）。</li>
+      <li><b>隐私</b>：首版不登录，行程只存在用户自己的浏览器里，服务器只保存生成任务的临时数据。</li>
+    </ul>
+    <p class="muted small">以上是技术层面的整理，不是法律意见。</p>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">7</span>还没验证的，和怎么验证</h2>
+    <div class="q"><b>1. 核心生成流程（最重要）</b>：需要一个国内大模型的 API key（建议 DeepSeek 或阿里云百炼）。跑一个小型完整流程：<b>选三座城市 → 从地点库筛候选 → 生成结构化行程 → 检查必去、排除项、日期和交通约束是否满足 → 修改其中一天 → 保存并重新打开</b>。至少覆盖 4 种情况：普通行程、天数明显不够、有固定预约、导入了重复或库外的地点。记录耗时、费用、失败情况、需要人工修正的内容。"输出能填进页面"不等于"生成可用"。</div>
+    <div class="q"><b>2. 截图识别</b>：用你手上的 3–5 张小红书攻略截图，测通义千问 VL 能否抽出地点名、匹配地点库、库外地点能否进入"待核实"。</div>
+    <div class="q"><b>3. 部署验收</b>（香港服务器）：不只测首页，要在大陆网络下跑完整生成流程；地图文件的 Range 请求和 CORS；用 itdog.cn、boce.com 多地测速；请大陆朋友用 4G / 5G 和微信各打开一次。</div>
+    <div class="q"><b>4. 导出验收</b>：长图里包含地图且不空白；在 iPhone 和安卓上都能生成；微信里长按能保存。</div>
+    <div class="q"><b>5. 后台任务</b>：生成中刷新页面、关掉再打开，进度能恢复；失败能重试；结果不丢。</div>
+    <div class="q"><b>6. 路线服务</b>：确定正式使用的服务（OpenRouteService 或自建）后，用同样的地点对重新测。</div>
+    <div class="q"><b>7. 首版支持哪些城市</b>：建议先做意大利几座主要城市（与原型案例一致），每增加一个城市 = 切一份底图 + 建一份地点库 + 人工整理核心景点。</div>
+  </section>
+
+  <footer>技术可行性验证 · v0.2 · 出境游规划助手</footer>
+</div>
+</body>
+</html>

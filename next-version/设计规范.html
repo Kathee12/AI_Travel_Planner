@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>设计规范 · 出境游规划助手</title>
+<style>
+  :root {
+    --bg: #f6f5f2; --paper: #ffffff; --ink: #1f2328; --ink-2: #57606a; --ink-3: #8c959f; --line: #e4e2dd; --accent: #b5502a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #16171a; --paper: #1e2024; --ink: #e6e6e6; --ink-2: #a8b0b8; --ink-3: #6e7681; --line: #30333a; --accent: #e08a63; }
+  }
+  :root[data-theme="dark"] { --bg: #16171a; --paper: #1e2024; --ink: #e6e6e6; --ink-2: #a8b0b8; --ink-3: #6e7681; --line: #30333a; --accent: #e08a63; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; font-size: 15px; line-height: 1.75; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 40px 16px 80px; }
+  .doc-type { font-size: 12px; letter-spacing: .12em; color: var(--accent); font-weight: 700; }
+  h1 { font-size: 28px; line-height: 1.3; margin: 6px 0 10px; }
+  .lead { color: var(--ink-2); font-size: 14px; margin: 0; }
+  .lead a { color: var(--accent); }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; margin-top: 16px; }
+  h2 { display: flex; align-items: center; gap: 10px; font-size: 19px; margin: 0 0 12px; }
+  h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; border-radius: 13px; background: var(--ink); color: var(--paper); font-size: 13px; font-weight: 700; }
+  h3 { font-size: 15.5px; margin: 16px 0 6px; }
+  p { margin: 0 0 8px; }
+  ul { margin: 4px 0 6px; padding-left: 20px; } li { margin: 2px 0; }
+  .muted { color: var(--ink-2); font-size: 13.5px; }
+  .tw { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td { text-align: left; vertical-align: middle; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { font-size: 12px; color: var(--ink-3); font-weight: 600; white-space: nowrap; }
+  code { font-size: 12.5px; background: color-mix(in srgb, var(--ink) 7%, transparent); padding: 1px 5px; border-radius: 4px; }
+  .sw { width: 34px; height: 34px; border-radius: 6px; border: 1px solid rgba(0,0,0,.1); display: inline-block; vertical-align: middle; }
+  /* 示例区固定用 A3 的浅色，便于看真实效果 */
+  .demo { background: #f7f3ec; color: #2b2622; border-radius: 8px; padding: 16px; margin: 8px 0; display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center; }
+  .serif { font-family: "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", serif; font-weight: 600; }
+  .num { font-family: Georgia, "Times New Roman", serif; }
+  .d-pbtn { background: #2b2622; color: #fbf7f0; border-radius: 999px; padding: 10px 22px; font-size: 15px; }
+  .d-sbtn { background: #fffdf9; border: 1px solid #d9cfc0; border-radius: 999px; padding: 9px 20px; font-size: 15px; }
+  .d-link { color: #b5502a; font-weight: 600; }
+  .d-chip { border: 1px solid #d9cfc0; background: #fffdf9; color: #5a5048; border-radius: 999px; padding: 4px 12px; font-size: 13.5px; }
+  .d-chip.on { border-color: #b5502a; color: #b5502a; background: color-mix(in srgb, #b5502a 9%, #fffdf9); }
+  .d-bk { border: 1px solid #2b2622; border-radius: 3px; padding: 0 6px; font-weight: 600; font-size: 12.5px; }
+  .d-vf { color: #8a5a00; background: #fbf3df; border: 1px dashed #d9b56a; border-radius: 3px; padding: 0 6px; font-weight: 600; font-size: 12px; }
+  .d-cf { background: #fdeceb; border: 1px solid #f1c4c0; border-radius: 3px; padding: 4px 10px; color: #7a1a1a; font-size: 12.5px; }
+  .d-cf b { background: #9b1c1c; color: #fff; padding: 0 6px; border-radius: 2px; margin-right: 6px; font-weight: 600; }
+  .d-ok { color: #2f6b45; border: 1px solid #2f6b45; border-radius: 3px; padding: 0 5px; font-size: 11.5px; }
+  .d-new { color: #b5502a; border: 1px solid #b5502a; border-radius: 3px; padding: 0 5px; font-size: 11px; }
+  .d-tab { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.15; color: #b5502a; box-shadow: inset 0 -2px 0 #b5502a; padding: 0 10px 6px; }
+  .d-tab b { font-size: 18px; font-weight: 400; } .d-tab span { font-size: 11px; }
+  .d-pin { width: 22px; height: 22px; border-radius: 50%; background: #b5502a; color: #fff; border: 2.5px solid #fffdf9; display: inline-flex; align-items: center; justify-content: center; font: 600 13px Georgia, serif; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+  .d-route { width: 90px; height: 7px; background: #fffdf9; border-radius: 4px; display: inline-flex; align-items: center; padding: 0 0; }
+  .d-route i { flex: 1; height: 3.5px; background: #b5502a; margin: 0 1px; }
+  .d-route.dash i { background: repeating-linear-gradient(90deg, #b5502a 0 5px, transparent 5px 10px); }
+  .type .r { display: flex; align-items: baseline; gap: 16px; padding: 6px 0; border-bottom: 1px solid #e6dfd3; }
+  .type .r small { width: 170px; flex-shrink: 0; font-size: 12px; color: #736a60; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  footer { margin-top: 28px; color: var(--ink-3); font-size: 12px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="doc-type">DESIGN SYSTEM · A3</div>
+    <h1>设计规范</h1>
+    <p class="lead">v0.1 · 2026-10-09 · 视觉方向：A3 米白陶土（清新杂志感）· 对照：<a href="高保真原型.html">高保真原型</a> · <a href="高保真-跨目的地验证.html">跨目的地验证</a></p>
+  </header>
+
+  <section class="card">
+    <h2><span class="num">0</span>原则</h2>
+    <ul>
+      <li><b>先看清，再好看。</b>杂志感靠宋体大标题、细线、留白、照片和插画来营造，不靠斜体、浅色小字或加框。</li>
+      <li><b>暖色分层。</b>米白底、奶白卡片、暖墨文字、陶土强调、橄榄点缀，几层暖色之间的细微温差让页面有厚度。</li>
+      <li><b>陶土色要用得少。</b>只用于：选中状态、关键操作（发送、文字链接）、路线与序号。其余标签一律中性色。</li>
+      <li><b>功能色固定。</b>已预约、待核实、时间冲突、已完成的颜色不随主题变化，并且都配图标和文字，不只靠颜色区分。</li>
+      <li><b>内容保持原样。</b>照片不加滤镜；目的地的差异由照片和内容体现，不改界面颜色。</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">1</span>颜色</h2>
+    <h3>基础色（主题变量）</h3>
+    <div class="tw"><table>
+      <tr><th></th><th>变量</th><th>色值</th><th>用途</th><th>对比度（底色 / 卡片）</th></tr>
+      <tr><td><span class="sw" style="background:#f7f3ec"></span></td><td><code>--bg</code></td><td>#f7f3ec</td><td>页面底色（暖米白）</td><td>—</td></tr>
+      <tr><td><span class="sw" style="background:#fffdf9"></span></td><td><code>--card</code></td><td>#fffdf9</td><td>卡片、输入框、弹层内容块</td><td>—</td></tr>
+      <tr><td><span class="sw" style="background:#2b2622"></span></td><td><code>--ink</code></td><td>#2b2622</td><td>标题、正文、景点名、主按钮底色</td><td>13.5 / 14.7</td></tr>
+      <tr><td><span class="sw" style="background:#5a5048"></span></td><td><code>--ink2</code></td><td>#5a5048</td><td>说明、交通、推荐理由等辅助文字</td><td>7.1 / 7.7</td></tr>
+      <tr><td><span class="sw" style="background:#736a60"></span></td><td><code>--ink3</code></td><td>#736a60</td><td>日期、距离、来源等元信息（已从 #8a8076 加深）</td><td>4.8 / 5.2</td></tr>
+      <tr><td><span class="sw" style="background:#e6dfd3"></span></td><td><code>--line</code></td><td>#e6dfd3</td><td>卡片描边、列表分隔</td><td>装饰，不承载文字</td></tr>
+      <tr><td><span class="sw" style="background:#d9cfc0"></span></td><td><code>--line2</code></td><td>#d9cfc0</td><td>区块标题后的细线、输入框和次按钮边框</td><td>装饰，不承载文字</td></tr>
+      <tr><td><span class="sw" style="background:#b5502a"></span></td><td><code>--acc</code></td><td>#b5502a</td><td>陶土强调：选中、发送、文字链接、路线、序号</td><td>4.6 / 5.0；白字在其上 5.1</td></tr>
+      <tr><td><span class="sw" style="background:color-mix(in srgb,#b5502a 9%,#fffdf9)"></span></td><td><code>--tint</code></td><td>陶土 9% + 卡片色</td><td>选中项底色（标签、分段、导出选项）</td><td>—</td></tr>
+      <tr><td><span class="sw" style="background:#66734a"></span></td><td><code>--olive</code></td><td>#66734a</td><td>插画点缀（不用于界面操作）</td><td>4.6 / 5.0</td></tr>
+    </table></div>
+    <h3>状态色（固定，不随主题变化）</h3>
+    <div class="demo">
+      <span class="d-bk">🔒 09:30 已预约</span>
+      <span class="d-vf">？待核实 · 营业时间</span>
+      <span class="d-cf"><b>⚠ 时间冲突</b>赶不上 11:30 的预约</span>
+      <span class="d-ok">✓ 已完成</span>
+      <span class="d-new">新加入</span>
+    </div>
+    <div class="tw"><table>
+      <tr><th>状态</th><th>样式</th><th>色值</th><th>对比度</th></tr>
+      <tr><td>已预约</td><td>墨色细框 + 🔒 + 时间</td><td>#2b2622</td><td>13.5</td></tr>
+      <tr><td>待核实</td><td>琥珀色文字 + 浅黄底 + 虚线框 + ？</td><td>#8a5a00 / #fbf3df / #d9b56a</td><td>5.4</td></tr>
+      <tr><td>时间冲突</td><td><b>深红实底白字标签</b> + 浅红底说明 + ⚠。陶土色从不以"实底白字的文字标签"出现，靠形态区分</td><td>#9b1c1c / #fdeceb / #7a1a1a</td><td>标签 8.2；说明 9.2</td></tr>
+      <tr><td>已完成</td><td>绿色细框 + ✓</td><td>#2f6b45</td><td>5.7</td></tr>
+      <tr><td>新加入</td><td>陶土细框（属于强调，不是状态）</td><td>#b5502a</td><td>4.6</td></tr>
+      <tr><td>提醒（如"下午较满"）</td><td>与"待核实"同色系的横条 + ⚠ + 操作按钮</td><td>#8a5a00 / #fbf3df</td><td>5.4</td></tr>
+    </table></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">2</span>字体</h2>
+    <p>只用手机系统字体，大陆无需加载外部字体。三种字体，各管一类：</p>
+    <ul>
+      <li><b>宋体（衬线）</b> <code>"Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", serif</code>，字重 600：只用于少量大标题。</li>
+      <li><b>黑体（无衬线）</b> <code>-apple-system, "PingFang SC", "Microsoft YaHei", sans-serif</code>：其余所有内容。<b>不用斜体</b>；正文不加字间距。</li>
+      <li><b>Georgia 数字</b>：只用于序号和日期栏的天数。</li>
+    </ul>
+    <div class="demo type" style="display:block">
+      <div class="r"><small>首页主标题 · 宋体 29 / 1.3</small><span class="serif" style="font-size:29px">下一趟，想去哪里？</span></div>
+      <div class="r"><small>当天主题 · 宋体 24</small><span class="serif" style="font-size:24px">古罗马遗址</span></div>
+      <div class="r"><small>行程名 · 宋体 21（导航栏 16.5）</small><span class="serif" style="font-size:21px">意大利三城 · 7 天</span></div>
+      <div class="r"><small>弹层标题 · 宋体 18；区块标题 15</small><span class="serif" style="font-size:18px">AI 建议的修改</span></div>
+      <div class="r"><small>景点名 · 黑体 16.5 / 600</small><span style="font-size:16.5px;font-weight:600">斗兽场</span></div>
+      <div class="r"><small>正文 / 按钮 · 黑体 14–15</small><span style="font-size:14px">告诉 AI 怎么改</span></div>
+      <div class="r"><small>辅助 · 黑体 13 · ink2</small><span style="font-size:13px;color:#5a5048">联票含古罗马广场与帕拉蒂尼山</span></div>
+      <div class="r"><small>元信息 · 黑体 12–12.5 · ink3</small><span style="font-size:12.5px;color:#736a60">3月15日 – 3月21日 · 约 0.9 km</span></div>
+      <div class="r"><small>英文小标题 · 11 · 字间距 .2em</small><span style="font-size:11px;letter-spacing:.22em;color:#b5502a;font-weight:600">TRAVEL JOURNAL · DAY 02</span></div>
+      <div class="r" style="border:none"><small>序号 · Georgia 22 · 陶土</small><span class="num" style="font-size:22px;color:#b5502a">1 2 3</span></div>
+    </div>
+    <p class="muted">英文小标题只用在少数几个标题位置作点缀，不用于正文。</p>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">3</span>间距与形状</h2>
+    <div class="tw"><table>
+      <tr><th>项目</th><th>数值</th></tr>
+      <tr><td>页面左右边距</td><td>20px（弹层内容同）</td></tr>
+      <tr><td>区块标题（文字 + 细线）</td><td>上 26px，下 12px；结果页时段标题上 16px，下 6px</td></tr>
+      <tr><td>卡片内边距</td><td>14px 16px</td></tr>
+      <tr><td>圆角</td><td>卡片、照片、地图 3–4px；按钮、标签、输入胶囊 999px；底部弹层顶部 16px</td></tr>
+      <tr><td>可点区域</td><td>按钮与输入框高度至少 44px；标签类控件视觉可小于 44px，但点击热区要补足</td></tr>
+      <tr><td>地图</td><td>结果页高 142px，左右与正文对齐；展示完整路线与全部编号</td></tr>
+    </table></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">4</span>组件</h2>
+    <div class="demo">
+      <span class="d-pbtn">开始规划</span>
+      <span class="d-sbtn">跳过</span>
+      <span class="d-link">查看行程 →</span>
+      <span class="d-chip">历史古迹</span><span class="d-chip on">城市漫步</span>
+      <span class="d-tab"><b class="num">2</b><span>罗马</span></span>
+      <span class="d-pin">1</span><span class="d-route"><i></i></span><span class="d-route dash"><i></i></span>
+    </div>
+    <div class="tw"><table>
+      <tr><th>组件</th><th>规则</th></tr>
+      <tr><td>主按钮</td><td>墨色实底、米白字、胶囊形。每屏最多一个。</td></tr>
+      <tr><td>次按钮</td><td>卡片色底 + 细框，与主按钮并排时放在左边。</td></tr>
+      <tr><td>文字链接</td><td>陶土色 600 + "→"或"›"，用于"查看行程""全部"等。</td></tr>
+      <tr><td>标签 / 分段选择</td><td>未选：细框 + 辅助色；已选：陶土框 + 陶土字 + 浅陶土底。不用实底。</td></tr>
+      <tr><td>日期栏</td><td>Georgia 大数字 + 小城市名；选中为陶土色并加 2px 下划线；"待安排 N"胶囊固定在右侧，查看待安排时加浅陶土底。陶土色不以实底白字的文字标签出现（留给"时间冲突"）；唯一的陶土实底是圆形发送按钮。</td></tr>
+      <tr><td>地点行</td><td>无边框列表：序号（陶土 Georgia）· 名称（黑体 600）· 一句说明（ink2，单行）· 状态与停留时长 · 右侧 60px 照片。编辑模式下变为卡片，左侧拖动把手，右侧"移到 / 删除"。</td></tr>
+      <tr><td>交通连接</td><td>两站之间的陶土虚线竖线 + 方式图标 + 时间 · 距离；估算值写明"估算"。</td></tr>
+      <tr><td>输入框与联想</td><td>卡片色底 + 细框；聚焦时陶土框 + 浅光晕；联想列表首项高亮，匹配字用陶土色。已选项为浅陶土底的小块。</td></tr>
+      <tr><td>底部弹层</td><td>米白底、顶部 16px 圆角、拖动条、宋体标题 + ✕；背景压暗 38%。</td></tr>
+      <tr><td>撤回提示</td><td>墨色胶囊浮层，"撤回"为浅陶土色。</td></tr>
+      <tr><td>AI 输入区</td><td>固定在底部：左"📕 帖子"（次级）· 中间输入胶囊 · 右陶土圆形发送按钮。</td></tr>
+    </table></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">5</span>地图</h2>
+    <ul>
+      <li>底图：自托管 OSM（Protomaps），配色与页面一致：底 #f1ebe1、陆地 #f4efe6、绿地 #e2e4cc、水 #c8d7d4、建筑 #ebe3d6、道路 #fffdf9、道路描边 #e3dacd、文字 #9a8f82。医院、学校等用地统一为建筑色。不显示底图自带的兴趣点图标。</li>
+      <li>路线：陶土 3.5px，外加 7px 道路色描边，保证在任何底图上都能看清。估算的公共交通只画两站之间的虚线，不代表实际线路。</li>
+      <li>标记：22px 陶土圆点 + 白色 Georgia 序号，与地点行的序号一致。</li>
+      <li>署名：左下角"© OpenStreetMap"，元信息色。</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">6</span>插画与照片</h2>
+    <ul>
+      <li><b>插画</b>（首页"下一趟，想去哪里？"下方）：通用旅行意象（远山、穹顶、塔、灯塔、棕榈、帆船、航线），不对应任何具体国家。全部颜色来自主题变量（底、卡片、墨、陶土、橄榄的混合色），换主题自动适配。线条用 ink2 1.3px，形状扁平。</li>
+      <li><b>照片</b>：真实照片，不加滤镜；圆角 3–4px；封面取景以地标为中心。来源 Wikimedia Commons 等可商用图库，按许可署名。</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">7</span>主题切换规则（后续功能）</h2>
+    <p>颜色都通过变量实现，换主题只需替换第 1 节的基础色。新主题必须满足：</p>
+    <ul>
+      <li>状态色不变；强调色色相与"时间冲突"的红色拉开，或继续靠形态区分。</li>
+      <li>正文与辅助文字对比度 ≥ 4.5；路线与绿地、水面的对比度 ≥ 4。</li>
+      <li>强调色要有足够彩度（参考陶土 Lab 彩度约 56），底色带一点温度，卡片与底色有可见的温差，避免"灰、白、薄"。</li>
+      <li>地图按新主题生成一份样式（正式版为实时地图，切换样式即可）。</li>
+    </ul>
+  </section>
+
+  <footer>设计规范 · v0.1 · 出境游规划助手</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,13 @@
+streamlit==1.50.0
+folium==0.20.0
+streamlit-folium==0.26.2
+langchain-google-genai==2.1.12
+langgraph==0.6.7
+langchain-core==0.3.76
+tavily-python==0.7.23
+openai==1.107.3
+python-dotenv==1.1.1
+icalendar==6.3.1
+plotly==6.4.0
+pandas==2.3.3
+requests==2.32.5
